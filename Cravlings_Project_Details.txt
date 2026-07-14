@@ -1,0 +1,139 @@
+CRAVLINGS
+
+Build Your Cravling. Feed Your Craving.
+
+Project Type: Frontend UI/UX Case Study (No Backend)
+
+Concept: Cravlings is a mood-first food ordering experience where users
+discover meals based on what they’re craving instead of browsing endless
+restaurant lists. Every user has a virtual companion called a “Cravling”
+that evolves with their food preferences.
+
+Core Features - Mood-based food discovery - AI-inspired “Feed Your
+Cravling” flow - Personalized recommendations - Rewards & XP system -
+Cravling evolution - Clean, playful mascot-driven branding - Modern
+cloud kitchen inspired UI
+
+Brand Personality - Fun - Warm - Friendly - Premium - Playful - Gamified
+
+Primary Colors - Warm Yellow - Coral Red - Soft Orange - Cream White -
+Charcoal Black
+
+Bottom Navigation 1. Home 2. Search 3. Feed Me (Primary CTA) 4. Orders
+5. Profile
+
+Project Screens
+
+1.  Splash Screen Purpose: Introduce the Cravlings brand with mascot
+    animation and tagline.
+
+2.  Home Includes:
+
+-   Greeting (“Hi Shivani!”)
+-   Cravling mascot
+-   Mood categories
+-   Recommended dishes
+-   Featured banner
+-   XP summary
+-   Rewards shortcut
+
+3.  Search
+
+-   Search food
+-   Search restaurants
+-   Trending searches
+-   Recent searches
+
+4.  Explore Categories Examples:
+
+-   Cheesy
+-   Spicy
+-   Sweet
+-   Comfort Food
+-   Healthy
+-   Midnight Cravings
+
+5.  Feed Your Cravling Interactive wizard asking:
+
+-   How hungry are you?
+-   Mood
+-   Budget
+-   Cuisine
+-   Delivery time
+
+6.  AI Recommendation Result Shows:
+
+-   Recommended meal
+-   Why it matches
+-   Nutrition
+-   Order button
+
+7.  Restaurant Listing
+
+-   Cards
+-   Filters
+-   Ratings
+-   Delivery time
+
+8.  Restaurant Details
+
+-   Hero banner
+-   Menu
+-   Offers
+-   Reviews
+
+9.  Food Details
+
+-   Images
+-   Description
+-   Customizations
+-   Add to cart
+
+10. Cart
+
+-   Items
+-   Coupons
+-   Price breakdown
+
+11. Checkout
+
+-   Address
+-   Payment UI
+-   Order summary
+
+12. Order Tracking
+
+-   Preparing
+-   On the way
+-   Delivered
+
+13. My Orders
+
+-   Active
+-   Past
+-   Reorder
+
+14. Rewards & XP
+
+-   Level
+-   Progress bar
+-   Coupons
+-   Missions
+
+15. Profile
+
+-   Personal info
+-   Addresses
+-   Favorites
+-   Settings
+
+Optional Bonus Screens - Cravling Evolution - Daily Missions - Rewards
+Store - Notifications - Surprise Me - Favorites
+
+Design Style - Rounded cards - Soft shadows - 12–20 px corner radius -
+Large food photography - Cute 3D mascot - Bright gradients - Minimal
+typography - Friendly micro-interactions
+
+Portfolio Goal Design an engaging frontend-only food ordering experience
+that differentiates itself through personalization, gamification, and a
+mascot-driven “Build Your Cravling. Feed Your Craving.” journey.

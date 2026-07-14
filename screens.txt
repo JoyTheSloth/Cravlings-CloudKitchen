@@ -1,0 +1,157 @@
+=========================================
+CRAVLINGS - 15 SCREEN MOBILE APP ARCHITECTURE
+=========================================
+
+Cravlings is a mood-first food ordering experience where users discover meals based on what they’re craving instead of browsing endless restaurant lists. Below is the detailed functional architecture of the 15 screens designed for the Cravlings platform.
+
+---------------------------------------------------------
+1. Splash Screen
+---------------------------------------------------------
+- Purpose: Brand introduction and entry point.
+- Visuals: 
+  * Cream background (#FFF8F2) with floating food icons.
+  * Centered 3D Cravling mascot animation (bobbing up and down).
+  * Pulsing brand tagline: "Build Your Cravling. Feed Your Craving."
+- Action: Automatically transitions to the Home Screen after 2.5 seconds or on tap.
+
+---------------------------------------------------------
+2. Home Screen (Interactive Prototype Core)
+---------------------------------------------------------
+- Purpose: Primary hub for food discovery, mascot interactions, and rewards.
+- Layout & Elements:
+  * Header: Greeting ("Hi, Shivani 👋"), Location selector ("Kolkata, India"), Search & Notification badges, Profile avatar.
+  * Hero Section: Animated winking 3D Cravling mascot with custom accessories, speech bubble ("Hey Shivani! What are we craving today?").
+  * Primary CTA: "Feed Your Cravling 🍽️" (Glow gradient button to launch AI Wizard).
+  * Quick Category Cards (Horizontal Scroll): Surprise Me 🎲, Favorites ❤️, Trending 🔥, Midnight Cravings 🌙, Offers 🏷️.
+  * Mood Selector: Circular mood nodes ("How are you feeling?") - Cheesy 🧀, Spicy 🌶️, Sweet 🍫, Comfort Food 🍜, Crunchy 🍗, Healthy 🥗.
+  * Today's Special Banner: High-fidelity interactive promo ("It's Biryani O'Clock! 😍" with 20% OFF coupon).
+  * Recommended for You: Grid of chef recommendations with instant Cart additions.
+  * Rewards Progress: Live XP progress bar towards Level 13, showing free delivery status.
+  * Navigation: Float-effect Bottom Navigation Bar.
+
+---------------------------------------------------------
+3. Search & Filter Screen
+---------------------------------------------------------
+- Purpose: Find specific items, restaurants, or browse recommendations.
+- Elements:
+  * Persistent Search Input with auto-focus.
+  * Recent Searches tags (removable).
+  * Trending Searches tags (e.g. "Ramen", "Garlic Bread", "Bobba").
+  * Dynamic filtering sidebar: Sort by rating, distance, price range, or dietary preferences.
+  * Live filter results updating as the user types.
+
+---------------------------------------------------------
+4. Mood-Based Exploration Screen
+---------------------------------------------------------
+- Purpose: Show curated lists of food filtered by a selected mood category.
+- Elements:
+  * Mood header with customized category badge (e.g. "Spicy Cravings 🌶️").
+  * "Mascot's Spicy Rating" scale (Mild, Wild, Inferno) for each dish.
+  * Grid cards of matching food dishes from various cloud kitchens.
+  * Fast-checkout quick-add buttons.
+
+---------------------------------------------------------
+5. "Feed Your Cravling" AI Wizard
+---------------------------------------------------------
+- Purpose: Interactive step-by-step game to let AI recommend the perfect dish.
+- Wizard Steps:
+  * Step 1: Hunger Level Selector (Nibblish 🤏, Hungry 😋, Starving 🤤). Mascot's face changes dynamically!
+  * Step 2: Budget Scale (Pocket Friendly 💰, Standard 💸, Premium 💎).
+  * Step 3: Spice Preference (No Spice 🥛, Medium 🌶️, Extra Hot 🔥).
+  * Step 4: AI Matching animation ("Mascot chef is mixing your ingredients...").
+
+---------------------------------------------------------
+6. AI Recommendation Result Screen
+---------------------------------------------------------
+- Purpose: Present the AI's final recommended meal with reasoning.
+- Elements:
+  * High-fidelity image of the recommended dish (e.g. Chicken Ramen).
+  * "Why it matches" speech bubble from the mascot: "It's raining in Kolkata and you're starving, so comfort food is a must! ☔"
+  * Rating, prep time, price, and nutritional info (Calories, Protein, Carbs).
+  * "Order Now" primary CTA and "Try Again" secondary option.
+
+---------------------------------------------------------
+7. Cloud Kitchen / Restaurant Listings
+---------------------------------------------------------
+- Purpose: Standard view for users who prefer exploring kitchen-first.
+- Elements:
+  * Kitchen cards showing distance, rating, cuisines, and active discounts.
+  * "Mascot Approved" tag for highly-rated local kitchens.
+  * Map-view toggle at the header.
+
+---------------------------------------------------------
+8. Kitchen Detail Screen
+---------------------------------------------------------
+- Purpose: Menu listing for a specific cloud kitchen.
+- Elements:
+  * Cover image of the kitchen.
+  * Search menu bar.
+  * Cuisines tags & details.
+  * Categorized menu list (Appetizers, Mains, Desserts) with smooth scrolling navigation tabs.
+
+---------------------------------------------------------
+9. Food Detail Screen
+---------------------------------------------------------
+- Purpose: Customize and view a single dish.
+- Elements:
+  * Large zooming food photography with nutrition chart overlay.
+  * Ingredient breakdown and allergen warnings.
+  * Customization drawer (Extras, Portions, Side sauces).
+  * Sticky "Add to Cart" button with running total.
+
+---------------------------------------------------------
+10. Shopping Cart
+---------------------------------------------------------
+- Purpose: Review selected items and select coupons.
+- Elements:
+  * Itemized order review with quantity adjusters.
+  * Mascot suggestions: "Add a Donut for just ₹49 to level up! 🍩"
+  * Coupon code input field with "Apply" button.
+  * Subtotal, tax, and delivery fee calculation.
+
+---------------------------------------------------------
+11. Checkout & Payment
+---------------------------------------------------------
+- Purpose: Finalize address and process payment.
+- Elements:
+  * Address selector card (Home, Office, Current Location).
+  * Estimated time of delivery countdown.
+  * Payment options (UPI, Cards, Cash, Cravlings Coins).
+  * "Slide to Order" payment slider for premium tactile feel.
+
+---------------------------------------------------------
+12. Live Order Tracking
+---------------------------------------------------------
+- Purpose: Real-time map and progress status of the delivery.
+- Elements:
+  * Interactive tracking map.
+  * Live status tracker steps: "Order Confirmed" -> "Chef Preparing" -> "Rider Assigned" -> "Out for Delivery".
+  * Delivery rider profile card with call/message shortcuts.
+  * Mascot cheers: "Your ramen is on the way! 🛵"
+
+---------------------------------------------------------
+13. Order History & Reordering
+---------------------------------------------------------
+- Purpose: Access past orders and easily reorder favorites.
+- Elements:
+  * Tabs: "Active Orders" and "Past Orders".
+  * "One-Tap Reorder" buttons.
+  * Invoice downloads and kitchen rating triggers.
+
+---------------------------------------------------------
+14. Rewards, Evolution & Missions
+---------------------------------------------------------
+- Purpose: Gamification center for Cravlings XP and coins.
+- Elements:
+  * Level tracker displaying Cravling Evolution stage (Egg -> Baby Blob -> Chef Blob -> Flavor God).
+  * Daily Missions board (e.g. "Order spicy after midnight", "Try a new salad").
+  * Mascot Dress-Up Store: Spend Cravlings Coins on hats, sunglasses, and skins.
+
+---------------------------------------------------------
+15. User Profile & Settings
+---------------------------------------------------------
+- Purpose: Manage personal preferences, addresses, and diet tags.
+- Elements:
+  * Profile details with custom avatar selection.
+  * Dietary profile tags (Vegan, Gluten-free, Keto) which guide the AI recommendation engine.
+  * Saved payment cards and order settings.
