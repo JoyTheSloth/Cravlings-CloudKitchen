@@ -104,15 +104,6 @@ export default function Header({ coins, cartCount, location, weather, onLocation
           </div>
           <span className="coin-count-val">{coins}</span>
         </div>
-
-        {/* User Profile Avatar */}
-        <div className="header-profile-container" onClick={() => onNavigate('profile')} title="View Profile">
-          <img 
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" 
-            className="header-profile-avatar" 
-            alt="Profile Avatar" 
-          />
-        </div>
       </div>
     </header>
   );

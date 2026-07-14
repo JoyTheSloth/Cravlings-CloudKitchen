@@ -303,16 +303,18 @@ export default function App() {
       )}
 
       {/* D. Main Header Row */}
-      <Header 
-        coins={coins} 
-        cartCount={totalCartCount} 
-        location={location} 
-        weather={weather}
-        onLocationChange={handleLocationChange} 
-        currentTab={currentTab}
-        onNavigate={handleNavigate}
-        onCartToggle={() => setMobileCartOpen(true)}
-      />
+      {currentTab !== 'home' && currentTab !== 'wizard' && currentTab !== 'kitchens' && (
+        <Header 
+          coins={coins} 
+          cartCount={totalCartCount} 
+          location={location} 
+          weather={weather}
+          onLocationChange={handleLocationChange} 
+          currentTab={currentTab}
+          onNavigate={handleNavigate}
+          onCartToggle={() => setMobileCartOpen(true)}
+        />
+      )}
 
       {/* E. Mobile Mascot Widget header drawer */}
       {currentTab === 'wardrobe' && (
@@ -324,8 +326,8 @@ export default function App() {
       )}
 
       {/* F. Main Grid Frame */}
-      <div className={`main-portal-wrapper ${currentTab === 'kitchens' ? 'has-sidebar' : 'no-sidebar'}`}>
-        <main className="portal-active-viewport">
+      <div className={`main-portal-wrapper ${currentTab === 'home' ? 'is-home-view' : ''} ${currentTab === 'kitchens' ? 'is-kitchens-view' : ''}`}>
+        <main className={`portal-active-viewport ${currentTab === 'home' ? 'is-home-view' : ''} ${currentTab === 'kitchens' ? 'is-kitchens-view' : ''}`}>
           
           {currentTab === 'home' && (
             <HomeView 
@@ -363,13 +365,18 @@ export default function App() {
               searchQuery={wizardQuery}
               onTriggerNotification={triggerNotification}
               setSpeechText={setSpeechText}
+              level={level}
             />
           )}
 
           {currentTab === 'kitchens' && (
             <KitchensView 
+              location={location}
+              level={level}
               onAddDish={handleAddDishDirectly}
               onOpenDishDetails={setSelectedDishDetails}
+              onNavigate={handleNavigate}
+              onTriggerNotification={triggerNotification}
             />
           )}
 
@@ -497,48 +504,58 @@ export default function App() {
       )}
 
       {/* H. Mobile Bottom Navigation Sticky Bar */}
-      <nav className="app-sticky-bottom-nav">
+      <nav className="app-sticky-bottom-nav swiggy-bottom-nav">
         <div 
-          className={`bottom-nav-item-btn ${currentTab === 'home' ? 'active' : ''}`}
+          className={`bottom-nav-item-btn swiggy-nav-item ${currentTab === 'home' ? 'active' : ''}`}
           onClick={() => handleNavigate('home')}
         >
-          <i className="fa-solid fa-house"></i>
-          <span>Home</span>
-        </div>
-        <div 
-          className={`bottom-nav-item-btn ${currentTab === 'kitchens' ? 'active' : ''}`}
-          onClick={() => handleNavigate('kitchens')}
-        >
-          <i className="fa-solid fa-search"></i>
-          <span>Search</span>
-        </div>
-        
-        {/* Main interactive center CTA Wizard button */}
-        <div 
-          className={`bottom-nav-item-btn raised-middle-btn ${currentTab === 'wizard' ? 'active' : ''}`}
-          onClick={() => handleNavigate('wizard')}
-        >
-          <div className="raised-button-circle">
-            <i className="fa-solid fa-utensils" style={{ color: 'white', fontSize: '18px' }}></i>
+          <div className="swiggy-nav-icon-container">
+            <i className="fa-solid fa-bowl-food swiggy-nav-icon"></i>
           </div>
-          <span style={{ color: 'var(--primary-coral)', marginTop: '2px' }}>Feed Me</span>
+          <span>Cravings</span>
         </div>
         
         <div 
-          className={`bottom-nav-item-btn ${currentTab === 'wardrobe' ? 'active' : ''}`}
-          onClick={() => handleNavigate('wardrobe')}
+          className={`bottom-nav-item-btn swiggy-nav-item ${mobileCartOpen ? 'active' : ''}`}
+          onClick={() => setMobileCartOpen(true)}
         >
-          <i className="fa-solid fa-gift"></i>
-          <span>Rewards</span>
+          <div className="swiggy-nav-icon-container">
+            {totalCartCount > 0 && <span className="nav-badge-gear">{totalCartCount}</span>}
+            <i className="fa-solid fa-cart-shopping swiggy-nav-icon"></i>
+          </div>
+          <span>Cart</span>
         </div>
+        
         <div 
-          className={`bottom-nav-item-btn ${currentTab === 'profile' ? 'active' : ''}`}
+          className={`bottom-nav-item-btn swiggy-nav-item ${currentTab === 'orders' ? 'active' : ''}`}
+          onClick={() => handleNavigate('orders')}
+        >
+          <div className="swiggy-nav-icon-container">
+            <i className="fa-solid fa-receipt swiggy-nav-icon"></i>
+          </div>
+          <span>Orders</span>
+        </div>
+        
+        <div 
+          className={`bottom-nav-item-btn swiggy-nav-item ${currentTab === 'profile' ? 'active' : ''}`}
           onClick={() => handleNavigate('profile')}
         >
-          <i className="fa-solid fa-user"></i>
+          <div className="swiggy-nav-icon-container">
+            <span className="nav-badge-lvl">LVL {level}</span>
+            <i className="fa-solid fa-user swiggy-nav-icon"></i>
+          </div>
           <span>Profile</span>
         </div>
       </nav>
+
+      {/* Floating GET 75 Coupon Tag on bottom right */}
+      <div 
+        className="swiggy-floating-coupon-btn" 
+        onClick={() => triggerNotification("🎟️ Promo Coupon Applied: GET ₹75 OFF on next checkout!")}
+      >
+        <span className="coupon-get">GET</span>
+        <span className="coupon-value">₹75</span>
+      </div>
 
       {/* I. Custom Dish Customize Detail Modal */}
       {selectedDishDetails && (

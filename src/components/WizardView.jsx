@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { dishes } from '../data/dishes';
 
+const STEPS = [
+  { id: 1, label: 'Hunger', icon: '🤤' },
+  { id: 2, label: 'Budget', icon: '💰' },
+  { id: 3, label: 'Flavor', icon: '🌶️' }
+];
+
 export default function WizardView({ 
   location, 
   weather, 
@@ -10,27 +16,36 @@ export default function WizardView({
   onOpenDishDetails, 
   searchQuery,
   onTriggerNotification,
-  setSpeechText 
+  setSpeechText,
+  level
 }) {
   const [step, setStep] = useState(1);
   const [hunger, setHunger] = useState('hungry');
   const [budget, setBudget] = useState('standard');
   const [flavor, setFlavor] = useState('spicy');
   const [loading, setLoading] = useState(false);
-  const [recommendation, setRecommendation] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [loadingDots, setLoadingDots] = useState('');
 
-  // If search query is passed from search bar, we immediately match
+  // Animate loading dots
+  useEffect(() => {
+    if (!loading) return;
+    const interval = setInterval(() => {
+      setLoadingDots(d => d.length >= 3 ? '' : d + '.');
+    }, 400);
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  // If search query is passed from search bar, skip to result
   useEffect(() => {
     if (searchQuery) {
       setLoading(true);
-      setStep(4); // Loader screen
-      
+      setStep(4);
       const timer = setTimeout(() => {
         setLoading(false);
-        setStep(5); // Result screen
-        calculateRecommendation(searchQuery);
-      }, 2000);
-
+        setStep(5);
+        calculateRecommendations(searchQuery);
+      }, 2200);
       return () => clearTimeout(timer);
     }
   }, [searchQuery]);
@@ -41,307 +56,366 @@ export default function WizardView({
     } else if (step === 3) {
       setStep(4);
       setLoading(true);
-      
       const timer = setTimeout(() => {
         setLoading(false);
         setStep(5);
-        calculateRecommendation();
-      }, 2000);
+        calculateRecommendations();
+      }, 2200);
     }
   };
 
   const handlePrev = () => {
-    if (step > 1 && step !== 5) {
-      setStep(step - 1);
-    } else {
-      onNavigate('home');
-    }
+    if (step > 1 && step !== 5) setStep(step - 1);
+    else onNavigate('home');
   };
 
-  const calculateRecommendation = (query = '') => {
-    let matched = dishes[0];
-    let reasonText = '';
-
-    const isVegan = dietTags.includes('Vegan');
+  const calculateRecommendations = (query = '') => {
+    const isVegan = dietTags?.includes('Vegan');
+    let matched = [];
 
     if (query) {
       const q = query.toLowerCase();
-      // Direct query match
-      matched = dishes.find(d => 
-        d.name.toLowerCase().includes(q) || 
+      matched = dishes.filter(d =>
+        d.name.toLowerCase().includes(q) ||
+        d.kitchen.toLowerCase().includes(q) ||
         d.tags.some(t => t.toLowerCase().includes(q))
-      ) || dishes[0];
-      
-      reasonText = `Blobby matched your prompt "${query}" with this special order of ${matched.name} from ${matched.kitchen}!`;
+      );
+      if (matched.length === 0) matched = dishes.slice(0, 3);
+      setSpeechText(`Found ${matched.length} match${matched.length !== 1 ? 'es' : ''} for "${query}"! 🎯`);
     } else if (weather === 'rainy') {
-      matched = dishes.find(d => d.id === 'comfort-ramen') || dishes[0];
-      reasonText = `It is raining outside in ${location.split(',')[0]}. Blobby recommends a bowl of warm, soothing Comfort Chicken Ramen 🍲.`;
+      matched = dishes.filter(d => ['comfort-ramen', 'biryani', 'butter-chicken'].includes(d.id));
+      setSpeechText(`Rainy day in ${location?.split(',')[0]}? Blobby picked warm comfort foods! 🌧️`);
     } else if (isVegan) {
-      matched = dishes.find(d => d.id === 'healthy-salad') || dishes[0];
-      reasonText = `Since your diet profile has Vegan checked, we matched you with our fresh, crunchy Quinoa Avocado Salad!`;
+      matched = dishes.filter(d => d.tags.includes('Healthy'));
+      setSpeechText('Matched your Vegan profile! Fresh & healthy picks just for you 🥗');
     } else if (flavor === 'sweet') {
-      matched = dishes.find(d => d.id === 'lava-cake') || dishes[0];
-      reasonText = `Got a sweet tooth? Blobby suggests a warm Chocolate Lava Cake 🍩!`;
+      matched = dishes.filter(d => d.tags.includes('Sweet'));
+      setSpeechText('Sweet tooth detected! Here are Blobby\'s dessert favourites 🍩');
+    } else if (flavor === 'healthy') {
+      matched = dishes.filter(d => d.tags.includes('Healthy'));
+      setSpeechText('Keeping it clean! Your perfect healthy options 💪');
+    } else if (flavor === 'cheesy') {
+      matched = dishes.filter(d => d.tags.includes('Cheesy'));
+      setSpeechText('Cheese overload incoming! These are dangerously good 🧀');
     } else if (hunger === 'starving') {
-      matched = dishes.find(d => d.id === 'biryani') || dishes[0];
-      reasonText = `You specified starving! Let's fill up on Chef's dum-cooked Hyderabadi Chicken Biryani.`;
+      matched = dishes.filter(d => d.nutrition.cal > 600);
+      setSpeechText('You\'re STARVING! Blobby picked the most filling options 🤤');
     } else if (hunger === 'nibblish') {
-      matched = dishes.find(d => d.id === 'healthy-salad') || dishes[0];
-      reasonText = `Looking for a light, delicious starter bite? We matched you with our signature Quinoa Avocado Salad.`;
+      matched = dishes.filter(d => d.nutrition.cal < 400);
+      setSpeechText('Light snack mode! Here are Blobby\'s favourite light bites 🤏');
+    } else if (budget === 'budget') {
+      matched = dishes.filter(d => d.price < 180).sort((a, b) => a.price - b.price);
+      setSpeechText('Best value picks that don\'t compromise on taste! 🪙');
+    } else if (budget === 'premium') {
+      matched = dishes.filter(d => d.price >= 300).sort((a, b) => b.rating - a.rating);
+      setSpeechText('Going premium! These are Blobby\'s most luxurious picks 💎');
     } else {
-      matched = dishes.find(d => d.id === 'pizza') || dishes[0];
-      reasonText = `Perfect savory choice! Pizza Hub's Cheesy Chicken Pizza is hot and ready.`;
+      matched = dishes.filter(d => d.tags.includes('Trending'));
+      setSpeechText('Here\'s what\'s trending in your area right now! 🔥');
     }
 
-    setRecommendation(matched);
-    setSpeechText(reasonText);
-  };
-
-  // Face SVG path changes based on hunger level
-  const getFacePaths = () => {
-    if (hunger === 'nibblish') {
-      return {
-        mouth: "M 70,105 Q 80,95 90,105",
-        mouthFill: "none",
-        eyes: (
-          <>
-            <circle cx="56" cy="80" r="5" fill="#232323" />
-            <circle cx="104" cy="80" r="5" fill="#232323" />
-          </>
-        )
-      };
-    } else if (hunger === 'starving') {
-      return {
-        mouth: "M 65,108 Q 80,125 95,108 Z",
-        mouthFill: "#FF8D7F",
-        eyes: (
-          <>
-            <ellipse cx="56" cy="80" rx="7" ry="7" fill="#232323" />
-            <ellipse cx="104" cy="80" rx="7" ry="7" fill="#232323" />
-          </>
-        )
-      };
-    } else {
-      // Hungry
-      return {
-        mouth: "M 70,102 Q 80,115 90,102",
-        mouthFill: "none",
-        eyes: (
-          <>
-            <circle cx="56" cy="80" r="5" fill="#232323" />
-            <circle cx="104" cy="80" r="5" fill="#232323" />
-          </>
-        )
-      };
+    // Ensure at least 3 results
+    if (matched.length === 0) matched = dishes.slice(0, 3);
+    if (matched.length < 3) {
+      const extras = dishes.filter(d => !matched.includes(d));
+      matched = [...matched, ...extras.slice(0, 3 - matched.length)];
     }
+    setRecommendations(matched.slice(0, 5));
   };
 
-  const face = getFacePaths();
+  const handleCategoryClick = (category) => {
+    if (category === 'Food') onNavigate('home');
+    else if (category === 'Dineout') onNavigate('kitchens');
+    else if (category === 'Wardrobe') onNavigate('wardrobe');
+    else if (category === 'Crav DNA') onNavigate('profile');
+  };
 
   return (
-    <div className="viewport-content-panel">
-      <div className="wizard-portal-view">
-        <div className="wizard-bar-steps">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img 
-              src="/blobbyimg.png" 
-              alt="Chef Blobby" 
-              style={{
-                width: '32px',
-                height: '32px',
-                objectFit: 'contain',
-                animation: 'floatMascot 2.5s ease-in-out infinite alternate'
-              }}
-            />
-            <h4 id="lbl-wiz-nav-title">Feed Your Cravling</h4>
+    <div className="swiggy-home-container">
+      {/* ── BLACK HEADER ── */}
+      <div className="swiggy-purple-section">
+        <div className="swiggy-black-location-picker">
+          <div className="black-loc-left" onClick={() => onTriggerNotification('📍 Location options coming soon!')}>
+            <div className="loc-title-row">
+              <i className="fa-solid fa-location-dot location-pin-white"></i>
+              <span className="loc-bold-title">Home</span>
+              <i className="fa-solid fa-chevron-down location-arrow-white"></i>
+            </div>
+            <span className="black-location-text">{location}</span>
+          </div>
+          <div className="black-loc-right-tools">
+            <div className="wallet-circle-btn" onClick={() => onTriggerNotification('💳 Wallet balance: ₹340.00')}>
+              <i className="fa-solid fa-wallet"></i>
+            </div>
+          </div>
+        </div>
+
+        {/* Category carousel */}
+        <div className="swiggy-categories-carousel">
+          {[
+            { id: 'Food', label: 'Food', emoji: '🍔' },
+            { id: 'Wizard', label: 'Wizard', emoji: '🪄', badge: 'AI' },
+            { id: 'Dineout', label: 'Dineout', emoji: '🍽️' },
+            { id: 'Wardrobe', label: 'Wardrobe', emoji: '👑', badge: 'Gear' },
+            { id: 'Crav DNA', label: 'Crav DNA', emoji: '🧬', badge: `LVL ${level || 1}` }
+          ].map(cat => (
+            <div
+              key={cat.id}
+              className={`swiggy-category-card ${cat.id === 'Wizard' ? 'active' : ''}`}
+              onClick={() => handleCategoryClick(cat.id)}
+            >
+              <div className="swiggy-category-icon-wrapper">
+                <span className="swiggy-category-emoji">{cat.emoji}</span>
+                {cat.badge && <span className="swiggy-category-badge-pill">{cat.badge}</span>}
+              </div>
+              <span className="swiggy-category-label">{cat.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── WIZARD ORGANIC CONTAINER ── */}
+      <div className="swiggy-organic-container wizard-organic-container" style={{ paddingBottom: '100px' }}>
+        
+        {/* ── WIZARD HEADER ── */}
+        <div className="wiz-header-row">
+          <div className="wiz-header-blobby">
+            <img src="/blobbyimg.png" alt="Chef Blobby" className="wiz-header-blob-img" />
+            <div>
+              <h2 className="wiz-header-title">Cravings Wizard</h2>
+              <p className="wiz-header-sub">AI-powered match engine 🪄</p>
+            </div>
           </div>
           {step <= 3 && (
-            <span className="wizard-step-tag" id="lbl-wiz-step-pill">
-              Step {step} of 3
-            </span>
+            <div className="wiz-step-pill">{step} / 3</div>
           )}
           {step === 5 && (
-            <span className="wizard-step-tag" id="lbl-wiz-step-pill" style={{ background: '#5FD38D', color: 'white' }}>
-              Matches Found
-            </span>
+            <div className="wiz-step-pill" style={{ background: 'rgba(95, 211, 141, 0.25)', color: '#5FD38D', border: '1px solid rgba(95, 211, 141, 0.4)' }}>
+              ✓ Matched!
+            </div>
           )}
         </div>
 
-        {/* Step 1: Hunger */}
+        {/* ── STEP PROGRESS BAR (steps 1-3) ── */}
+        {step <= 3 && (
+          <div className="wiz-progress-steps">
+            {STEPS.map((s, idx) => (
+              <React.Fragment key={s.id}>
+                <div className={`wiz-step-dot ${step >= s.id ? 'active' : ''} ${step > s.id ? 'done' : ''}`}>
+                  {step > s.id ? <i className="fa-solid fa-check"></i> : <span>{s.icon}</span>}
+                  <span className="wiz-step-dot-label">{s.label}</span>
+                </div>
+                {idx < STEPS.length - 1 && (
+                  <div className={`wiz-step-connector ${step > s.id ? 'done' : ''}`}></div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        )}
+
+        {/* ──────────────────────────────── */}
+        {/* STEP 1: Hunger Level            */}
+        {/* ──────────────────────────────── */}
         {step === 1 && (
-          <div className="wizard-step-block">
-            <h3 className="wizard-prompt-text">How hungry are we feeling?</h3>
-            <div className="wizard-companion-wink-interactive" style={{
-              width: '130px',
-              height: '130px',
-              margin: '0 auto 20px auto',
-              position: 'relative',
-              background: 'radial-gradient(circle, rgba(255, 222, 203, 0.5) 0%, rgba(255, 222, 203, 0) 70%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '50%'
-            }}>
-              <img 
-                src="/blobbyimg.png" 
-                alt="Chef Blobby" 
-                style={{
-                  width: '100px',
-                  height: '100px',
-                  objectFit: 'contain',
-                  animation: 'floatMascot 3s ease-in-out infinite',
-                  filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.15))'
-                }} 
-              />
+          <div className="wiz-step-block">
+            <div className="wiz-mascot-glow-wrap">
+              <img src="/blobbyimg.png" alt="Chef Blobby" className="wiz-mascot-float" />
             </div>
-            <div className="wizard-options-list">
+            <h3 className="wiz-question">How hungry are we? 🤔</h3>
+            <p className="wiz-question-sub">Tell Blobby your appetite level and we'll size your portion</p>
+            <div className="wiz-options-grid">
               {[
-                { id: 'hungry', emoji: '😋', title: 'Hungry', desc: 'Ready for a standard delicious meal' },
-                { id: 'nibblish', emoji: '🤏', title: 'Nibblish', desc: 'Just looking for a light snack' },
-                { id: 'starving', emoji: '🤤', title: 'Starving', desc: 'Need a massive filling portion meal now!' }
+                { id: 'nibblish', emoji: '🤏', title: 'Nibblish',   desc: 'Just a light snack',        color: '#E0F2FE', border: '#7DD3FC' },
+                { id: 'hungry',   emoji: '😋', title: 'Hungry',     desc: 'Standard meal portion',     color: '#FEF3C7', border: '#FCD34D' },
+                { id: 'starving', emoji: '🤤', title: 'Starving',   desc: 'Massive filling feast!',    color: '#FFE4E6', border: '#FCA5A5' }
               ].map(opt => (
-                <div 
-                  key={opt.id} 
-                  className={`wizard-option-card-square ${hunger === opt.id ? 'selected' : ''}`}
+                <div
+                  key={opt.id}
+                  className={`wiz-option-card ${hunger === opt.id ? 'selected' : ''}`}
                   onClick={() => setHunger(opt.id)}
+                  style={hunger === opt.id ? { background: opt.color, borderColor: opt.border } : {}}
                 >
-                  <div className="wiz-square-emoji-container">
+                  <div className="wiz-option-emoji-ring" style={hunger === opt.id ? { background: 'white' } : {}}>
                     <span>{opt.emoji}</span>
                   </div>
-                  <h5 className="wiz-square-title">{opt.title}</h5>
-                  <p className="wiz-square-desc">{opt.desc}</p>
+                  <h5 className="wiz-option-title">{opt.title}</h5>
+                  <p className="wiz-option-desc">{opt.desc}</p>
+                  {hunger === opt.id && (
+                    <div className="wiz-option-check"><i className="fa-solid fa-check"></i></div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Step 2: Budget */}
+        {/* ──────────────────────────────── */}
+        {/* STEP 2: Budget                  */}
+        {/* ──────────────────────────────── */}
         {step === 2 && (
-          <div className="wizard-step-block">
-            <h3 className="wizard-prompt-text">What is your target budget scale?</h3>
-            <div className="wizard-options-list">
+          <div className="wiz-step-block">
+            <h3 className="wiz-question">What's your budget vibe? 💸</h3>
+            <p className="wiz-question-sub">We'll filter kitchens within your comfort zone</p>
+            <div className="wiz-options-grid">
               {[
-                { id: 'budget', emoji: '🪙', title: 'Budget Friendly', desc: 'Affordable quick meals under ₹150' },
-                { id: 'standard', emoji: '💸', title: 'Standard Choice', desc: 'Regular dining meals ₹150 - ₹300' },
-                { id: 'premium', emoji: '💎', title: 'Gourmet Splurge', desc: 'Premium quality meals above ₹300' }
+                { id: 'budget',   emoji: '🪙', title: 'Budget',    desc: 'Great meals under ₹180',   color: '#DCFCE7', border: '#86EFAC' },
+                { id: 'standard', emoji: '💸', title: 'Standard',  desc: 'Sweet spot ₹180–₹300',     color: '#EDE9FE', border: '#A78BFA' },
+                { id: 'premium',  emoji: '💎', title: 'Premium',   desc: 'Luxury above ₹300',        color: '#FEF3C7', border: '#FCD34D' }
               ].map(opt => (
-                <div 
-                  key={opt.id} 
-                  className={`wizard-option-card-square ${budget === opt.id ? 'selected' : ''}`}
+                <div
+                  key={opt.id}
+                  className={`wiz-option-card ${budget === opt.id ? 'selected' : ''}`}
                   onClick={() => setBudget(opt.id)}
+                  style={budget === opt.id ? { background: opt.color, borderColor: opt.border } : {}}
                 >
-                  <div className="wiz-square-emoji-container">
+                  <div className="wiz-option-emoji-ring" style={budget === opt.id ? { background: 'white' } : {}}>
                     <span>{opt.emoji}</span>
                   </div>
-                  <h5 className="wiz-square-title">{opt.title}</h5>
-                  <p className="wiz-square-desc">{opt.desc}</p>
+                  <h5 className="wiz-option-title">{opt.title}</h5>
+                  <p className="wiz-option-desc">{opt.desc}</p>
+                  {budget === opt.id && (
+                    <div className="wiz-option-check"><i className="fa-solid fa-check"></i></div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Step 3: Flavor Note */}
+        {/* ──────────────────────────────── */}
+        {/* STEP 3: Flavor Tone             */}
+        {/* ──────────────────────────────── */}
         {step === 3 && (
-          <div className="wizard-step-block">
-            <h3 className="wizard-prompt-text">Pick your desired flavor tone</h3>
-            <div className="wizard-options-list four-cols">
+          <div className="wiz-step-block">
+            <h3 className="wiz-question">Pick your flavor personality 🌶️</h3>
+            <p className="wiz-question-sub">This determines the final taste profile match</p>
+            <div className="wiz-options-grid wiz-options-grid-4">
               {[
-                { id: 'spicy', emoji: '🌶️', title: 'Spicy & Savory', desc: 'Hot peppers and local spices' },
-                { id: 'sweet', emoji: '🍩', title: 'Sweet Cravings', desc: 'Cakes and sweet delights' },
-                { id: 'cheesy', emoji: '🍕', title: 'Cheesy & Rich', desc: 'Melted cheese & warm carbs' },
-                { id: 'healthy', emoji: '🥗', title: 'Healthy & Light', desc: 'Salads & low-calorie portions' }
+                { id: 'spicy',   emoji: '🌶️', title: 'Spicy',    desc: 'Bold & fiery heat',       color: '#FFE4E6', border: '#FCA5A5' },
+                { id: 'sweet',   emoji: '🍩', title: 'Sweet',    desc: 'Sugar rush mode',          color: '#FEF3C7', border: '#FCD34D' },
+                { id: 'cheesy',  emoji: '🍕', title: 'Cheesy',   desc: 'Melted gooey carbs',       color: '#FFF7ED', border: '#FDBA74' },
+                { id: 'healthy', emoji: '🥗', title: 'Healthy',  desc: 'Clean & nutritious',       color: '#DCFCE7', border: '#86EFAC' }
               ].map(opt => (
-                <div 
-                  key={opt.id} 
-                  className={`wizard-option-card-square ${flavor === opt.id ? 'selected' : ''}`}
+                <div
+                  key={opt.id}
+                  className={`wiz-option-card ${flavor === opt.id ? 'selected' : ''}`}
                   onClick={() => setFlavor(opt.id)}
+                  style={flavor === opt.id ? { background: opt.color, borderColor: opt.border } : {}}
                 >
-                  <div className="wiz-square-emoji-container">
+                  <div className="wiz-option-emoji-ring" style={flavor === opt.id ? { background: 'white' } : {}}>
                     <span>{opt.emoji}</span>
                   </div>
-                  <h5 className="wiz-square-title">{opt.title}</h5>
-                  <p className="wiz-square-desc">{opt.desc}</p>
+                  <h5 className="wiz-option-title">{opt.title}</h5>
+                  <p className="wiz-option-desc">{opt.desc}</p>
+                  {flavor === opt.id && (
+                    <div className="wiz-option-check"><i className="fa-solid fa-check"></i></div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Step 4: Loading Pulse */}
+        {/* ──────────────────────────────── */}
+        {/* STEP 4: Loading Screen          */}
+        {/* ──────────────────────────────── */}
         {step === 4 && loading && (
-          <div className="wizard-matching-loader-frame" id="wiz-step-loader">
-            <div className="wizard-match-circle-pulse">🍲</div>
-            <h3 style={{ fontFamily: 'Fredoka, sans-serif' }}>Matching Cravings...</h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
-              Finding the best local kitchens matching your profile preferences
-            </p>
-          </div>
-        )}
-
-        {/* Step 5: Result Screen */}
-        {step === 5 && recommendation && (
-          <div className="wizard-step-block" id="wiz-step-result">
-            <div className="wizard-match-box-result">
-              <span className="wiz-match-badge">Recommended Match</span>
-              
-              {/* Mascot dialogue bubble above image */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '22px' }}>
-                <div className="mascot-dialogue-bubble" style={{ position: 'relative', margin: '0 auto 16px auto', width: 'fit-content', animation: 'none' }}>
-                  <span id="lbl-wiz-dialogue-result">
-                    Blobby matched your preferences with this delicious <b>{recommendation.name}</b> from <b>{recommendation.kitchen}</b>!
-                  </span>
-                </div>
-                <div className="wizard-companion-wink-interactive" style={{ width: '110px', height: '110px', margin: '0 auto', position: 'relative' }}>
-                  <img 
-                    src="/blobbyimg.png" 
-                    alt="Chef Blobby" 
-                    style={{
-                      width: '90px',
-                      height: '90px',
-                      objectFit: 'contain',
-                      animation: 'floatMascot 3s ease-in-out infinite',
-                      filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.12))'
-                    }} 
-                  />
-                </div>
+          <div className="wiz-loader-frame">
+            <div className="wiz-loader-rings">
+              <div className="wiz-loader-ring ring-1"></div>
+              <div className="wiz-loader-ring ring-2"></div>
+              <div className="wiz-loader-ring ring-3"></div>
+              <div className="wiz-loader-blob">
+                <img src="/blobbyimg.png" alt="Loading" className="wiz-loader-blob-img" />
               </div>
-
-              <div 
-                className="wiz-result-dish-card" 
-                onClick={() => onOpenDishDetails(recommendation)}
-              >
-                <img src={recommendation.img} className="wiz-result-dish-img" alt={recommendation.name} />
-                <div className="wiz-result-dish-info">
-                  <h4>{recommendation.name}</h4>
-                  <p>{recommendation.kitchen} • ⭐ {recommendation.rating}</p>
-                  <span className="wiz-result-dish-price">₹{recommendation.price}</span>
-                </div>
-                <i className="fa-solid fa-chevron-right" style={{ color: 'var(--text-muted)' }}></i>
-              </div>
+            </div>
+            <h3 className="wiz-loader-title">Matching Cravings{loadingDots}</h3>
+            <p className="wiz-loader-sub">Blobby is scanning 50+ local kitchens for your perfect match</p>
+            <div className="wiz-loader-tags">
+              {['Taste Profile', 'Budget Check', 'Distance', 'Rating Score'].map((tag, i) => (
+                <span key={i} className="wiz-loader-tag" style={{ animationDelay: `${i * 0.3}s` }}>{tag}</span>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Action Buttons Footer */}
-        {step !== 4 && (
-          <div className="wizard-actions-footer" id="wiz-footer-nav-bar">
-            <button className="wizard-btn-prev" onClick={handlePrev}>
-              {step === 1 ? 'Exit' : 'Back'}
-            </button>
-            <button 
-              className="wizard-btn-next" 
-              id="wiz-btn-action-continue"
-              onClick={step === 5 ? () => {
-                onAddDish(recommendation);
-                onNavigate('home');
-              } : handleNext}
+        {/* ──────────────────────────────── */}
+        {/* STEP 5: Results Screen          */}
+        {/* ──────────────────────────────── */}
+        {step === 5 && recommendations.length > 0 && (
+          <div className="wiz-results-block">
+
+            {/* Blobby verdict banner */}
+            <div className="wiz-result-banner">
+              <div className="wiz-result-banner-left">
+                <img src="/blobbyimg.png" alt="Blobby" className="wiz-result-blobby" />
+              </div>
+              <div className="wiz-result-banner-text">
+                <span className="wiz-result-badge">🎯 Blobby's Top Picks</span>
+                <p className="wiz-result-match-count">
+                  Found <strong>{recommendations.length} perfect matches</strong> for your cravings
+                </p>
+              </div>
+            </div>
+
+            {/* Results list */}
+            <div className="wiz-results-list">
+              {recommendations.map((dish, idx) => (
+                <div
+                  key={dish.id}
+                  className={`wiz-result-dish-row ${idx === 0 ? 'top-pick' : ''}`}
+                  onClick={() => onOpenDishDetails(dish)}
+                >
+                  {idx === 0 && <div className="wiz-top-pick-ribbon">🥇 TOP PICK</div>}
+                  <img src={dish.img} alt={dish.name} className="wiz-result-row-img" />
+                  <div className="wiz-result-row-info">
+                    <h4 className="wiz-result-row-name">{dish.name}</h4>
+                    <p className="wiz-result-row-kitchen">{dish.kitchen}</p>
+                    <div className="wiz-result-row-meta">
+                      <span className="wiz-result-row-rating"><i className="fa-solid fa-star"></i> {dish.rating}</span>
+                      <span className="wiz-result-row-time">⏱ {dish.time}</span>
+                      {dish.badge && <span className="wiz-result-row-badge">{dish.badge}</span>}
+                    </div>
+                  </div>
+                  <div className="wiz-result-row-right">
+                    <span className="wiz-result-row-price">₹{dish.price}</span>
+                    <button
+                      className="wiz-result-add-btn"
+                      onClick={e => {
+                        e.stopPropagation();
+                        onAddDish(dish);
+                        onTriggerNotification(`🛒 Added ${dish.name}!`);
+                      }}
+                    >
+                      <i className="fa-solid fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Re-run button */}
+            <button
+              className="wiz-retry-btn"
+              onClick={() => { setStep(1); setRecommendations([]); }}
             >
-              {step === 3 ? 'Match Me' : step === 5 ? 'Order suggestions now' : 'Continue'}
+              <i className="fa-solid fa-rotate-left"></i> Try Different Preferences
             </button>
           </div>
         )}
+
+        {/* ── ACTION FOOTER (steps 1–3 only) ── */}
+        {step <= 3 && (
+          <div className="wiz-footer-row">
+            <button className="wiz-btn-back" onClick={handlePrev}>
+              {step === 1 ? <><i className="fa-solid fa-xmark"></i> Exit</> : <><i className="fa-solid fa-arrow-left"></i> Back</>}
+            </button>
+            <button className="wiz-btn-next" onClick={handleNext}>
+              {step === 3 ? <><i className="fa-solid fa-wand-magic-sparkles"></i> Match Me!</> : <>Continue <i className="fa-solid fa-arrow-right"></i></>}
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );

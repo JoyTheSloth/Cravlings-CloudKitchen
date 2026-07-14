@@ -1,48 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { dishes } from '../data/dishes';
+import React from 'react';
 
 const DIET_TAGS = [
-  { id: 'Vegan', emoji: '🌱', label: 'Vegan Diet', desc: 'No animal products or derivatives' },
-  { id: 'GlutenFree', emoji: '🌾', label: 'Gluten-Free', desc: 'Wheat-free, stomach sensitive recipes' },
-  { id: 'HighProtein', emoji: '🥩', label: 'High Protein', desc: 'Packed with lean meats, eggs or tofu' },
-  { id: 'LowCarb', emoji: '🥦', label: 'Low Carb', desc: 'Keto-friendly vegetables & healthy fats' }
+  { id: 'Vegan', emoji: '🌱', label: 'Vegan' },
+  { id: 'GlutenFree', emoji: '🌾', label: 'Gluten-Free' },
+  { id: 'HighProtein', emoji: '🥩', label: 'High Protein' },
+  { id: 'LowCarb', emoji: '🥦', label: 'Low Carb' }
 ];
 
 export default function ProfileView({ 
   dietTags, 
   setDietTags, 
-  missions, 
-  setMissions, 
   onTriggerNotification, 
-  onAwardXP,
-  setSpeechText,
   cravingDNA,
   level,
   xp,
   xpMax = 300,
-  pastOrders,
-  onAddDish,
-  location,
-  onOpenDishDetails
 }) {
-  // Custom timer state for Limited Time Offer (copied from HomeView)
-  const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 18, seconds: 45 });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        }
-        return { hours: 2, minutes: 18, seconds: 45 };
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleDietToggle = (tagId) => {
     if (dietTags.includes(tagId)) {
@@ -54,278 +27,251 @@ export default function ProfileView({
 
   const handleSavePreferences = () => {
     onTriggerNotification("💾 Preferences saved successfully!");
-    if (setSpeechText) {
-      setSpeechText("Preferences updated! Blobby will remember this for future cravings! 😋");
-    }
   };
 
-  const handleMissionCheck = (mission) => {
-    if (mission.completed) return;
-
-    // Mark completed
-    setMissions(missions.map(m => m.id === mission.id ? { ...m, completed: true } : m));
-    onAwardXP(mission.reward);
-    onTriggerNotification(`Claimed Daily Mission! +${mission.reward} XP.`);
-  };
-
-  const handleSurpriseSpin = () => {
-    const tags = ['Cheesy', 'Spicy', 'Sweet', 'Comfort', 'Healthy', 'Midnight', 'Crunchy', 'Coffee'];
-    const randomTag = tags[Math.floor(Math.random() * tags.length)];
-    onTriggerNotification(`🎲 Surprise Spin matched: ${randomTag}!`);
-    
-    // Choose a random dish matching the tag
-    const matches = dishes.filter(d => d.tags.includes(randomTag));
-    if (matches.length > 0) {
-      const chosen = matches[Math.floor(Math.random() * matches.length)];
-      if (onOpenDishDetails) {
-        setTimeout(() => {
-          onOpenDishDetails(chosen);
-        }, 500);
-      }
-    }
+  // Helper color map for DNA legends
+  const dnaColors = {
+    Cheesy: '#FFB100',
+    Spicy: '#FF3E3E',
+    Sweet: '#FF6EB4',
+    Comfort: '#8A2BE2',
+    Healthy: '#00CD66'
   };
 
   return (
-    <div className="viewport-content-panel profile-view-container" style={{ paddingBottom: '40px' }}>
-      {/* Profile Info Card */}
-      <div style={{ background: 'var(--bg-cream)', borderRadius: 'var(--radius-xl)', border: '1.5px solid rgba(229, 213, 197, 0.4)', padding: '24px', display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '25px' }}>
-        <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'var(--grad-coral)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', color: 'white', fontWeight: '900', boxShadow: '0 4px 12px rgba(255, 94, 126, 0.2)' }}>
-          S
-        </div>
-        <div>
-          <h3 style={{ fontFamily: 'Fredoka, sans-serif' }}>Shivani Das</h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>shivani.das@email.com • Level {level} Companion Trainer</p>
-        </div>
-      </div>
-
-      {/* Dietary Profile Section */}
-      <div className="section-headline-bar">
-        <h3>Dietary Preference Profile 🥗</h3>
-      </div>
-      <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '15px' }}>
-        Check tags to let Blobby filter recommendation algorithms according to your daily dietary needs.
-      </p>
-
-      <div className="profile-dietary-row">
-        {DIET_TAGS.map(tag => {
-          const isActive = dietTags.includes(tag.id);
-          return (
-            <div 
-              key={tag.id}
-              className={`diet-tag-card-button ${isActive ? 'active' : ''}`}
-              onClick={() => handleDietToggle(tag.id)}
-            >
-              <div className="diet-card-icon-frame">{tag.emoji}</div>
-              <div className="diet-card-meta">
-                <h4>{tag.label}</h4>
-                <p>{tag.desc}</p>
-              </div>
-              <div className="diet-card-checked-check">
-                {isActive ? <i className="fa-solid fa-check"></i> : null}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <button className="profile-save-btn" onClick={handleSavePreferences} style={{ marginBottom: '35px' }}>
-        Save Cravings Profile
-      </button>
-
-      {/* 1. Craving DNA Section (Moved from HomeView) */}
-      <div className="section-headline-bar">
-        <h3>Your Craving DNA</h3>
-      </div>
-      <div className="craving-dna-container-card" style={{ marginBottom: '25px' }}>
-        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-          This data represents your companion profile, updating in real-time as you select moods or feed Chef Blobby!
-        </p>
-
-        {/* Stacked dynamic color bar */}
-        <div className="craving-dna-bar-track">
-          <div className="dna-bar-fill cheesy" style={{ width: `${cravingDNA.Cheesy}%` }} title={`Cheesy: ${cravingDNA.Cheesy}%`}></div>
-          <div className="dna-bar-fill spicy" style={{ width: `${cravingDNA.Spicy}%` }} title={`Spicy: ${cravingDNA.Spicy}%`}></div>
-          <div className="dna-bar-fill sweet" style={{ width: `${cravingDNA.Sweet}%` }} title={`Sweet: ${cravingDNA.Sweet}%`}></div>
-          <div className="dna-bar-fill comfort" style={{ width: `${cravingDNA.Comfort}%` }} title={`Comfort: ${cravingDNA.Comfort}%`}></div>
-          <div className="dna-bar-fill healthy" style={{ width: `${cravingDNA.Healthy}%` }} title={`Healthy: ${cravingDNA.Healthy}%`}></div>
-        </div>
-
-        {/* Legend */}
-        <div className="craving-dna-legend-grid">
-          <div className="legend-node"><span className="dot cheesy"></span> Cheesy {cravingDNA.Cheesy}%</div>
-          <div className="legend-node"><span className="dot spicy"></span> Spicy {cravingDNA.Spicy}%</div>
-          <div className="legend-node"><span className="dot sweet"></span> Sweet {cravingDNA.Sweet}%</div>
-          <div className="legend-node"><span className="dot comfort"></span> Comfort {cravingDNA.Comfort}%</div>
-          <div className="legend-node"><span className="dot healthy"></span> Healthy {cravingDNA.Healthy}%</div>
-        </div>
-      </div>
-
-      {/* 2. Daily Mascot Missions (Combined with HomeView's Active Task) */}
-      <div className="section-headline-bar">
-        <h3>Daily Mascot Missions 🏆</h3>
-      </div>
-      <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '15px' }}>
-        Complete daily interactive tasks with Chef Blobby to earn bonus coins and companion XP!
-      </p>
-
-      <div className="missions-checklist" style={{ marginBottom: '25px' }}>
-        {/* Active Daily Mission Banner */}
-        <div className="daily-mission-banner-card" style={{ marginBottom: '15px', border: '1.5px solid rgba(255, 94, 126, 0.15)' }}>
-          <div style={{ flex: 1 }}>
-            <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--primary-coral)', textTransform: 'uppercase' }}>Active Spotlight Task</span>
-            <h4 style={{ marginTop: '2px', fontFamily: 'Fredoka, sans-serif' }}>🌶 Try something spicy today</h4>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Reward: +100 XP / +50 Coins</p>
+    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'Poppins, sans-serif' }}>
+      
+      {/* 1. Sleek Profile Header & Level Progress */}
+      <div style={{ 
+        background: '#E6005C', 
+        borderRadius: '24px', 
+        padding: '20px', 
+        color: 'white',
+        boxShadow: '0 8px 24px rgba(230, 0, 92, 0.15)'
+      }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{ 
+            width: '56px', 
+            height: '56px', 
+            borderRadius: '50%', 
+            background: 'linear-gradient(135deg, #FFE2E2 0%, #F5CBA7 100%)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontSize: '22px', 
+            fontWeight: '800',
+            color: '#A04000',
+            border: '2px solid white'
+          }}>
+            S
           </div>
-          <button 
-            className="mission-claim-btn"
-            onClick={() => {
-              onAwardXP(100);
-              onTriggerNotification("Claimed Daily Mission! +100 XP / +50 Coins 🏆");
-            }}
-          >
-            Claim
-          </button>
-        </div>
-
-        {missions.map(m => (
-          <div 
-            className="mission-check-row" 
-            key={m.id}
-            style={{ opacity: m.completed ? 0.6 : 1 }}
-            onClick={() => handleMissionCheck(m)}
-          >
-            <input 
-              type="checkbox" 
-              checked={m.completed} 
-              disabled={m.completed}
-              onChange={() => {}} // Controlled by row click
-              style={{ width: '16px', height: '16px', accentColor: 'var(--primary-coral)', marginRight: '8px' }}
-            />
-            <div style={{ flex: 1 }}>
-              <span className="mission-check-text">{m.task}</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '10px' }}>
-                (+{m.reward} XP / {Math.round(m.reward / 2)} Coins)
-              </span>
-            </div>
-            {m.completed && <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--success-mint)' }}>Completed</span>}
-          </div>
-        ))}
-      </div>
-
-      {/* 3. XP & Level Card (Moved from HomeView) */}
-      <div className="section-headline-bar">
-        <h3>Trainer Levels & Companion Progress</h3>
-      </div>
-      <div className="trainer-xp-level-card" style={{ marginBottom: '25px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <span style={{ fontSize: '12px', fontWeight: '800', opacity: '0.8' }}>COMPANION PROGRESS</span>
-            <h4 style={{ fontFamily: 'Fredoka, sans-serif', marginTop: '2px' }}>Level {level}</h4>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', fontFamily: 'Fredoka, sans-serif' }}>Shivani Kumari</h3>
+            <p style={{ margin: '2px 0 0 0', fontSize: '12px', opacity: 0.8 }}>shivani.kumari@email.com</p>
           </div>
-          <span style={{ fontSize: '12px', fontWeight: '900', color: 'var(--primary-coral)' }}>{xp} / {xpMax} XP</span>
         </div>
-        <div className="trainer-xp-bar-track">
-          <div className="trainer-xp-bar-fill" style={{ width: `${(xp / xpMax) * 100}%` }}></div>
+        
+        {/* XP Level Bar */}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '700' }}>
+            <span style={{ color: '#E6005C' }}>LVL {level} Companion Trainer</span>
+            <span style={{ opacity: 0.9 }}>{xp} / {xpMax} XP</span>
+          </div>
+          <div style={{ height: '6px', width: '100%', background: 'rgba(255,255,255,0.15)', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${Math.min(100, (xp / xpMax) * 100)}%`, background: '#E6005C', borderRadius: '3px', transition: 'width 0.3s ease' }} />
+          </div>
         </div>
       </div>
 
-      {/* 4. Limited Time Offer Banner (Moved from HomeView) */}
-      <div className="limited-time-craving-card" style={{ marginBottom: '25px' }}>
-        <div style={{ flex: 1 }}>
-          <span className="limited-badge">⚡ LIMITED TIME OFFER</span>
-          <h4 style={{ marginTop: '6px', fontFamily: 'Fredoka, sans-serif' }}>Get 50% OFF your second order from Pizza Hub</h4>
-          <span style={{ fontSize: '13px', fontWeight: '800', display: 'block', marginTop: '8px' }}>
-            ⏰ Countdown: {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s left
-          </span>
-        </div>
-        <i className="fa-solid fa-gift" style={{ fontSize: '42px', color: '#FFA62B', opacity: '0.9' }}></i>
-      </div>
-
-      {/* 5. Recently Fed (Moved from HomeView) */}
-      <div className="section-headline-bar">
-        <h3>Recently Fed</h3>
-      </div>
-      <div className="recently-fed-list" style={{ marginBottom: '25px' }}>
-        {pastOrders && pastOrders.length > 0 ? (
-          pastOrders.map(order => (
-            <div key={order.id} className="recently-fed-item-row">
-              <div>
-                <span className="fed-name">{order.dish}</span>
-                <span className="fed-date">Last ordered {order.date}</span>
-              </div>
-              <button className="fed-reorder-btn" onClick={() => onAddDish(dishes.find(d => d.name === order.dish) || dishes[0])}>
-                Reorder
+      {/* 2. Dietary Preferences Section */}
+      <div>
+        <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', color: '#1C1C1E', fontWeight: '800', fontFamily: 'Fredoka, sans-serif' }}>Dietary Filter</h4>
+        <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#8E8E93' }}>Blobby filters recipe options according to your choices.</p>
+        
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {DIET_TAGS.map(tag => {
+            const isActive = dietTags.includes(tag.id);
+            return (
+              <button 
+                key={tag.id}
+                onClick={() => handleDietToggle(tag.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 12px',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  border: isActive ? '1.5px solid #E6005C' : '1.5px solid #E5E7EB',
+                  background: isActive ? 'rgba(230, 0, 92, 0.06)' : '#F8F9FA',
+                  color: isActive ? '#E6005C' : '#3A3A3C',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+              >
+                <span>{tag.emoji}</span>
+                <span>{tag.label}</span>
+                {isActive && <i className="fa-solid fa-circle-check" style={{ fontSize: '11px', marginLeft: '2px' }}></i>}
               </button>
-            </div>
-          ))
-        ) : (
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '15px' }}>No orders placed yet!</p>
-        )}
+            );
+          })}
+        </div>
+        
+        <button 
+          onClick={handleSavePreferences}
+          style={{
+            marginTop: '12px',
+            background: '#E6005C',
+            color: 'white',
+            border: 'none',
+            borderRadius: '20px',
+            padding: '8px 16px',
+            fontSize: '12px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(230, 0, 92, 0.15)',
+            transition: 'background 0.2s'
+          }}
+        >
+          Save Preferences
+        </button>
       </div>
 
-      {/* 6. Surprise Me (Roulette Spin) (Moved from HomeView) */}
-      <div className="section-headline-bar">
-        <h3>Can't Decide?</h3>
-      </div>
-      <div className="surprise-me-roulette-card" onClick={handleSurpriseSpin} style={{ marginBottom: '25px' }}>
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <span style={{ fontSize: '32px' }}>🎲</span>
-          <div style={{ flex: 1 }}>
-            <h4>Surprise Cravings Wheel</h4>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-              Spin Chef Blobby's secret craving wheel to choose a random menu recommendation!
-            </p>
+      {/* 3. Craving DNA Card */}
+      <div>
+        <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', color: '#1C1C1E', fontWeight: '800', fontFamily: 'Fredoka, sans-serif' }}>Your Craving DNA</h4>
+        <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#8E8E93' }}>Updates dynamically based on your companion meals.</p>
+        
+        <div style={{ 
+          background: '#F8F9FA', 
+          borderRadius: '20px', 
+          padding: '16px', 
+          border: '1px solid #E5E7EB'
+        }}>
+          {/* Stacked DNA Progress Bar */}
+          <div style={{ 
+            height: '10px', 
+            width: '100%', 
+            display: 'flex', 
+            borderRadius: '5px', 
+            overflow: 'hidden', 
+            background: '#E5E7EB',
+            marginBottom: '16px'
+          }}>
+            <div style={{ width: `${cravingDNA.Cheesy}%`, background: dnaColors.Cheesy }} />
+            <div style={{ width: `${cravingDNA.Spicy}%`, background: dnaColors.Spicy }} />
+            <div style={{ width: `${cravingDNA.Sweet}%`, background: dnaColors.Sweet }} />
+            <div style={{ width: `${cravingDNA.Comfort}%`, background: dnaColors.Comfort }} />
+            <div style={{ width: `${cravingDNA.Healthy}%`, background: dnaColors.Healthy }} />
+          </div>
+          
+          {/* Legend Grid */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(2, 1fr)', 
+            gap: '8px 16px',
+            fontSize: '11px',
+            fontWeight: '700',
+            color: '#3A3A3C'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dnaColors.Cheesy }} />
+              <span>Cheesy: {cravingDNA.Cheesy}%</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dnaColors.Spicy }} />
+              <span>Spicy: {cravingDNA.Spicy}%</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dnaColors.Sweet }} />
+              <span>Sweet: {cravingDNA.Sweet}%</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dnaColors.Comfort }} />
+              <span>Comfort: {cravingDNA.Comfort}%</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', gridColumn: 'span 2' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dnaColors.Healthy }} />
+              <span>Healthy: {cravingDNA.Healthy}%</span>
+            </div>
           </div>
         </div>
-        <button className="roulette-spin-btn">Spin</button>
       </div>
 
-      {/* 7. Friends are Craving (Moved from HomeView) */}
-      <div className="friends-craving-box" style={{ marginBottom: '25px' }}>
-        <i className="fa-solid fa-users" style={{ color: 'var(--primary-coral)', marginRight: '8px' }}></i>
-        <span>12 people near you in {location ? location.split(',')[0] : 'Kolkata'} ordered Biryani today!</span>
-      </div>
-
-      {/* 8. Seasonal Suggestions (Moved from HomeView) */}
-      <div className="section-headline-bar">
-        <h3>Seasonal Delights</h3>
-      </div>
-      <div className="seasonal-suggestions-row" style={{ marginBottom: '25px' }}>
-        <div className="seasonal-item-card" style={{ flex: 1 }}>
-          <span style={{ fontSize: '24px' }}>🎄</span>
-          <span className="title">Christmas Special</span>
-          <p>Warm Plum cakes & cocoa pudding cups</p>
-        </div>
-        <div className="seasonal-item-card" style={{ flex: 1 }}>
-          <span style={{ fontSize: '24px' }}>🌧️</span>
-          <span className="title">Rainy Monsoon</span>
-          <p>Hot ginger chai & crunchy veggie treats</p>
-        </div>
-      </div>
-
-      {/* 9. Unlocked Badges (Moved from HomeView) */}
-      <div className="section-headline-bar">
-        <h3>Unlocked Badges</h3>
-      </div>
-      <div className="unlocked-badges-row" style={{ marginBottom: '35px' }}>
-        <div className="badge-bubble-node" title="Pizza Lover">
-          <span style={{ fontSize: '22px' }}>🍕</span>
-          <span style={{ fontSize: '9px', fontWeight: '800', marginTop: '4px' }}>Pizza Lover</span>
-        </div>
-        <div className="badge-bubble-node" title="Ramen Expert">
-          <span style={{ fontSize: '22px' }}>🍜</span>
-          <span style={{ fontSize: '9px', fontWeight: '800', marginTop: '4px' }}>Ramen Expert</span>
-        </div>
-        <div className="badge-bubble-node" title="Dessert Addict">
-          <span style={{ fontSize: '22px' }}>🍩</span>
-          <span style={{ fontSize: '9px', fontWeight: '800', marginTop: '4px' }}>Dessert Addict</span>
+      {/* 4. Unlocked Badges */}
+      <div>
+        <h4 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#1C1C1E', fontWeight: '800', fontFamily: 'Fredoka, sans-serif' }}>Unlocked Badges</h4>
+        
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {[
+            { emoji: '🍕', title: 'Pizza Lover' },
+            { emoji: '🍜', title: 'Ramen Expert' },
+            { emoji: '🍩', title: 'Dessert Addict' }
+          ].map((badge, idx) => (
+            <div 
+              key={idx}
+              style={{
+                flex: 1,
+                background: 'white',
+                border: '1px solid #E5E7EB',
+                borderRadius: '16px',
+                padding: '12px 6px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+              }}
+            >
+              <span style={{ fontSize: '24px', marginBottom: '4px' }}>{badge.emoji}</span>
+              <span style={{ fontSize: '9px', fontWeight: '800', color: '#3A3A3C', textAlign: 'center' }}>{badge.title}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* 10. Mood Quote (Moved from HomeView) */}
-      <div className="mood-quote-container" style={{ marginTop: '25px', marginBottom: '10px' }}>
-        <p className="quote-text">"Every craving tells a story."</p>
+      {/* 5. Account & Settings Card */}
+      <div>
+        <h4 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#1C1C1E', fontWeight: '800', fontFamily: 'Fredoka, sans-serif' }}>Account & Settings</h4>
+        
+        <div style={{ 
+          background: '#F8F9FA', 
+          border: '1px solid #E5E7EB', 
+          borderRadius: '20px', 
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {[
+            { icon: 'fa-clock-rotate-left', label: 'Previous Transactions' },
+            { icon: 'fa-headset', label: 'Help & Support' },
+            { icon: 'fa-gear', label: 'Settings & Help Center' }
+          ].map((item, idx) => (
+            <div 
+              key={idx}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 16px',
+                borderBottom: idx < 2 ? '1px solid #E5E7EB' : 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s'
+              }}
+              onClick={() => onTriggerNotification(`⚙️ Opening ${item.label}...`)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <i className={`fa-solid ${item.icon}`} style={{ fontSize: '14px', color: '#E6005C', width: '20px', textAlign: 'center' }}></i>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: '#3A3A3C' }}>{item.label}</span>
+              </div>
+              <i className="fa-solid fa-chevron-right" style={{ fontSize: '11px', color: '#8E8E93' }}></i>
+            </div>
+          ))}
+        </div>
       </div>
+
     </div>
   );
 }

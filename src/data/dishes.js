@@ -34,7 +34,7 @@ export const dishes = [
     price: 219,
     time: '25-30 min',
     tags: ['Comfort', 'all'],
-    badge: 'Blobby\'s Choice',
+    badge: "Blobby's Choice",
     img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&auto=format&fit=crop',
     nutrition: { cal: 520, prot: '22g', fat: '12g', carb: '68g' }
   },
@@ -76,6 +76,162 @@ export const dishes = [
     badge: 'Premium',
     img: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&auto=format&fit=crop',
     nutrition: { cal: 410, prot: '16g', fat: '8g', carb: '62g' }
+  },
+  {
+    id: 'butter-chicken',
+    name: 'Creamy Butter Chicken',
+    kitchen: 'Spice Route Kitchen',
+    rating: '4.8',
+    reviews: '1.8k',
+    price: 229,
+    time: '35-40 min',
+    tags: ['Spicy', 'Comfort', 'all'],
+    badge: 'Bestseller',
+    img: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400&auto=format&fit=crop',
+    nutrition: { cal: 620, prot: '32g', fat: '28g', carb: '42g' }
+  },
+  {
+    id: 'garlic-bread',
+    name: 'Loaded Garlic Cheese Bread',
+    kitchen: "La Pino'z Cloud Kitchen",
+    rating: '4.7',
+    reviews: '690',
+    price: 119,
+    time: '20-25 min',
+    tags: ['Cheesy', 'Snack', 'all'],
+    badge: 'Trending',
+    img: 'https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=400&auto=format&fit=crop',
+    nutrition: { cal: 380, prot: '12g', fat: '16g', carb: '48g' }
+  },
+  {
+    id: 'korean-noodles',
+    name: 'Spicy Korean Stir Noodles',
+    kitchen: 'K-Pop Kitchen',
+    rating: '4.8',
+    reviews: '1.1k',
+    price: 239,
+    time: '25-30 min',
+    tags: ['Spicy', 'Comfort', 'all'],
+    badge: "Blobby's Choice",
+    img: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=400&auto=format&fit=crop',
+    nutrition: { cal: 540, prot: '18g', fat: '14g', carb: '78g' }
+  },
+  {
+    id: 'paneer-tikka',
+    name: 'Paneer Tikka Masala',
+    kitchen: 'Spice Route Kitchen',
+    rating: '4.6',
+    reviews: '720',
+    price: 189,
+    time: '30-35 min',
+    tags: ['Healthy', 'Spicy', 'all'],
+    badge: 'Veg Special',
+    img: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=400&auto=format&fit=crop',
+    nutrition: { cal: 480, prot: '22g', fat: '20g', carb: '38g' }
+  },
+  {
+    id: 'acai-bowl',
+    name: 'Tropical Acai Power Bowl',
+    kitchen: 'Green & Lean Kitchen',
+    rating: '4.7',
+    reviews: '430',
+    price: 199,
+    time: '10-15 min',
+    tags: ['Healthy', 'all'],
+    badge: 'Fitness Fresh',
+    img: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=400&auto=format&fit=crop',
+    nutrition: { cal: 290, prot: '8g', fat: '9g', carb: '45g' }
+  },
+  {
+    id: 'waffles',
+    name: 'Nutella Strawberry Waffles',
+    kitchen: 'Dessert Heaven',
+    rating: '4.8',
+    reviews: '2.2k',
+    price: 159,
+    time: '15-20 min',
+    tags: ['Sweet', 'all'],
+    badge: 'Fan Favourite',
+    img: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&auto=format&fit=crop',
+    nutrition: { cal: 510, prot: '9g', fat: '22g', carb: '65g' }
+  },
+  {
+    id: 'poke-bowl',
+    name: 'Tuna Poke Bowl',
+    kitchen: 'Noodle Bowl Co.',
+    rating: '4.7',
+    reviews: '560',
+    price: 319,
+    time: '20-25 min',
+    tags: ['Healthy', 'all'],
+    badge: 'Premium',
+    img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop',
+    nutrition: { cal: 380, prot: '28g', fat: '10g', carb: '42g' }
+  },
+  {
+    id: 'tacos',
+    name: 'Smoky Chicken Street Tacos',
+    kitchen: 'Wrap & Roll Co.',
+    rating: '4.6',
+    reviews: '840',
+    price: 179,
+    time: '20-25 min',
+    tags: ['Spicy', 'Trending', 'all'],
+    badge: 'Crowd Pleaser',
+    img: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&auto=format&fit=crop',
+    nutrition: { cal: 430, prot: '26g', fat: '16g', carb: '48g' }
+  },
+  {
+    id: 'dal-makhani',
+    name: 'Rich Dal Makhani',
+    kitchen: 'Spice Route Kitchen',
+    rating: '4.5',
+    reviews: '390',
+    price: 149,
+    time: '35-45 min',
+    tags: ['Comfort', 'all'],
+    badge: 'Classic',
+    img: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&auto=format&fit=crop',
+    nutrition: { cal: 360, prot: '14g', fat: '12g', carb: '52g' }
+  },
+  {
+    id: 'cheesecake',
+    name: 'New York Style Cheesecake',
+    kitchen: 'Dessert Heaven',
+    rating: '4.9',
+    reviews: '1.9k',
+    price: 199,
+    time: '15-20 min',
+    tags: ['Sweet', 'all'],
+    badge: 'Must Have',
+    img: 'https://images.unsplash.com/photo-1524351199678-941a58a3df50?w=400&auto=format&fit=crop',
+    nutrition: { cal: 490, prot: '8g', fat: '30g', carb: '50g' }
+  },
+  {
+    id: 'burger',
+    name: 'Double Smash Burger',
+    kitchen: 'Burger Lab',
+    rating: '4.8',
+    reviews: '2.5k',
+    price: 269,
+    time: '25-30 min',
+    tags: ['Comfort', 'Cheesy', 'all'],
+    badge: 'Bestseller',
+    img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop',
+    nutrition: { cal: 720, prot: '38g', fat: '34g', carb: '62g' }
+  },
+  {
+    id: 'caesar-wrap',
+    name: 'Grilled Chicken Caesar Wrap',
+    kitchen: 'Wrap & Roll Co.',
+    rating: '4.5',
+    reviews: '310',
+    price: 159,
+    time: '15-20 min',
+    tags: ['Healthy', 'all'],
+    badge: 'Light Bite',
+    img: 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&auto=format&fit=crop',
+    nutrition: { cal: 350, prot: '28g', fat: '12g', carb: '34g' }
   }
 ];
 
@@ -83,51 +239,144 @@ export const cloudKitchens = [
   {
     id: 'lapinoz',
     name: "La Pino'z Cloud Kitchen",
-    img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&auto=format&fit=crop',
+    img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop',
     cuisines: 'Pizzas, Pastas, Italian Desserts',
     rating: '4.8',
     time: '30-35 min',
     distance: '2.1 km',
-    approved: true
+    approved: true,
+    offer: '20% OFF on orders above ₹399'
   },
   {
     id: 'bongdum',
     name: 'Bong Dum Biryani House',
-    img: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&auto=format&fit=crop',
+    img: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop',
     cuisines: 'Biryanis, Kebabs, Mughlai Cuisine',
     rating: '4.7',
     time: '40-45 min',
     distance: '3.4 km',
-    approved: true
+    approved: true,
+    offer: 'Free raita on orders above ₹299'
   },
   {
     id: 'noodlebowl',
     name: 'Noodle Bowl Co.',
-    img: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400&auto=format&fit=crop',
+    img: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&auto=format&fit=crop',
     cuisines: 'Ramen, Sushi, Pan-Asian Bowls',
     rating: '4.9',
     time: '25-30 min',
     distance: '1.8 km',
-    approved: true
+    approved: true,
+    offer: '30% OFF + Free Delivery'
   },
   {
     id: 'greenlean',
     name: 'Green & Lean Kitchen',
-    img: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=400&auto=format&fit=crop',
+    img: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=600&auto=format&fit=crop',
     cuisines: 'Salads, Acai Bowls, Healthy Shakes',
     rating: '4.6',
     time: '15-20 min',
     distance: '2.8 km',
-    approved: false
+    approved: false,
+    offer: 'Buy 2 Get 1 Free on bowls'
   },
   {
     id: 'dessertheaven',
     name: 'Dessert Heaven',
-    img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&auto=format&fit=crop',
+    img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop',
     cuisines: 'Cakes, Waffles, Dessert Jars',
     rating: '4.9',
     time: '20-25 min',
     distance: '2.5 km',
-    approved: true
+    approved: true,
+    offer: 'FLAT ₹50 OFF on dessert combos'
+  },
+  {
+    id: 'spiceroute',
+    name: 'Spice Route Kitchen',
+    img: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&auto=format&fit=crop',
+    cuisines: 'North Indian, Mughlai, Tandoor',
+    rating: '4.8',
+    time: '35-40 min',
+    distance: '1.5 km',
+    approved: true,
+    offer: '50% OFF up to ₹100 on first order'
+  },
+  {
+    id: 'kpopkitchen',
+    name: 'K-Pop Kitchen',
+    img: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=600&auto=format&fit=crop',
+    cuisines: 'Korean BBQ, Ramyeon, Kimbap',
+    rating: '4.8',
+    time: '30-35 min',
+    distance: '4.2 km',
+    approved: true,
+    offer: '₹75 OFF on combo meals'
+  },
+  {
+    id: 'burgerlab',
+    name: 'Burger Lab',
+    img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop',
+    cuisines: 'Smash Burgers, Fries, Shakes',
+    rating: '4.8',
+    time: '20-25 min',
+    distance: '1.2 km',
+    approved: true,
+    offer: 'Free fries on orders above ₹350'
+  },
+  {
+    id: 'wraproll',
+    name: 'Wrap & Roll Co.',
+    img: 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=600&auto=format&fit=crop',
+    cuisines: 'Wraps, Tacos, Grilled Bowls',
+    rating: '4.6',
+    time: '20-30 min',
+    distance: '3.0 km',
+    approved: false,
+    offer: '2 wraps for ₹299'
+  },
+  {
+    id: 'thaiexpress',
+    name: 'Thai Express',
+    img: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=600&auto=format&fit=crop',
+    cuisines: 'Pad Thai, Green Curry, Som Tam',
+    rating: '4.7',
+    time: '30-40 min',
+    distance: '5.1 km',
+    approved: true,
+    offer: '15% OFF every day before 12pm'
+  },
+  {
+    id: 'momohouse',
+    name: 'Momo House',
+    img: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&auto=format&fit=crop',
+    cuisines: 'Steamed Momos, Fried Momos, Chilli Sauce',
+    rating: '4.5',
+    time: '20-30 min',
+    distance: '2.2 km',
+    approved: true,
+    offer: '20 momos for ₹149'
+  },
+  {
+    id: 'southindian',
+    name: 'Dakshin Darbar',
+    img: 'https://images.unsplash.com/photo-1630383249896-424e482df921?w=600&auto=format&fit=crop',
+    cuisines: 'Dosa, Idli, Sambar, Filter Coffee',
+    rating: '4.6',
+    time: '25-35 min',
+    distance: '3.7 km',
+    approved: true,
+    offer: 'Breakfast special — ₹99 thali before 11am'
+  },
+  {
+    id: 'chinesebox',
+    name: 'The Chinese Box',
+    img: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop',
+    cuisines: 'Hakka Noodles, Manchurian, Dim Sum',
+    rating: '4.4',
+    time: '30-40 min',
+    distance: '4.5 km',
+    approved: false,
+    offer: '₹60 OFF on combo boxes'
   }
 ];

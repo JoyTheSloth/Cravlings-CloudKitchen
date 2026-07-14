@@ -24,84 +24,41 @@ export default function HomeView({
   pastOrders
 }) {
   const [searchInput, setSearchInput] = useState('');
+  const [showPromo, setShowPromo] = useState(true);
+  const [activeCategory, setActiveCategory] = useState('Food'); // Food, Instamart, Dineout, Wine Stores, Scenes
+  const [isVegOnly, setIsVegOnly] = useState(false);
+  const [activeSubTab, setActiveSubTab] = useState('REORDER'); // REORDER vs FOOD IN 15 MINS
+  const [priceFilter, setPriceFilter] = useState(null); // Price limit from deals
   
-  // Custom timer states
-  const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 18, seconds: 45 });
-  const [mascotAnimationState, setMascotAnimationState] = useState('wave'); // wave, jump, idle
-  const [mascotBubbleText, setMascotBubbleText] = useState("Let's find something cheesy! 🧀");
-
-  // Countdown timer effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        }
-        return { hours: 2, minutes: 18, seconds: 45 }; // Reset
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Mascot waves on page load
-  useEffect(() => {
-    setMascotAnimationState('wave');
-    const timer = setTimeout(() => {
-      setMascotAnimationState('idle');
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Change mascot speech bubble based on active mood tag
-  const handleMoodChipSelect = (mood) => {
-    setActiveMood(mood);
-    const speechMap = {
-      Cheesy: "Cheese pull incoming! Let's get something cheesy 🧀",
-      Spicy: "Bring on the heat! Spicy basmati heat loading... 🌶️",
-      Sweet: "Sugar rush! Chocolate cakes are calling us 🍩",
-      Comfort: "Savory warmth. Hot ramen is perfect! 🍜",
-      Healthy: "Keeping it clean and fresh! Salad vibes 🌱",
-      Midnight: "Late night? I've got you covered with comforting snacks 🌙",
-      Crunchy: "Crispy and crunchy starters! 🍗",
-      Coffee: "Need caffeine energy? Warm beverages on the way ☕"
-    };
-    setMascotBubbleText(speechMap[mood] || "Let's feed our craving! 🍽️");
-  };
-
-  const handleMascotClick = () => {
-    setMascotAnimationState('jump');
-    onTriggerNotification("Blobby says: Yum! Feed me more! 😋");
-    setMascotBubbleText("Yum! That feels amazing! Keep feeding me! 😋");
-    setTimeout(() => {
-      setMascotAnimationState('idle');
-    }, 1200);
-  };
-
-  const handleSurpriseSpin = () => {
-    const tags = ['Cheesy', 'Spicy', 'Sweet', 'Comfort', 'Healthy', 'Midnight', 'Crunchy', 'Coffee'];
-    const randomTag = tags[Math.floor(Math.random() * tags.length)];
-    handleMoodChipSelect(randomTag);
-    onTriggerNotification(`🎲 Surprise Spin matched: ${randomTag}!`);
-    
-    // Choose a random dish matching the tag
-    const matches = dishes.filter(d => d.tags.includes(randomTag));
-    if (matches.length > 0) {
-      const chosen = matches[Math.floor(Math.random() * matches.length)];
-      setTimeout(() => {
-        onOpenDishDetails(chosen);
-      }, 500);
+  // Custom speech/companion updates when categories or items are clicked
+  const handleCategoryClick = (category) => {
+    setActiveCategory(category);
+    if (category === 'Wizard') {
+      onNavigate('wizard');
+    } else if (category === 'Dineout') {
+      onNavigate('kitchens');
+    } else if (category === 'Wardrobe') {
+      onNavigate('wardrobe');
+    } else if (category === 'Crav DNA') {
+      onNavigate('profile');
+    } else {
+      if (setSpeechText) {
+        setSpeechText("Nice! Let's find your favorite food cravings! 🍔");
+      }
     }
   };
 
-  const getGreeting = () => {
-    const hours = new Date().getHours();
-    if (hours < 12) return "Good Morning";
-    if (hours < 17) return "Good Afternoon";
-    return "Good Evening";
+  const handleDealClick = (dealName, maxPrice) => {
+    if (priceFilter === maxPrice) {
+      setPriceFilter(null);
+      onTriggerNotification("Cleared price filter");
+    } else {
+      setPriceFilter(maxPrice);
+      onTriggerNotification(`🎯 Filtered for: ${dealName}!`);
+      if (setSpeechText) {
+        setSpeechText(`Blobby says: Budget mode activated! Dishes under ₹${maxPrice}! 💸`);
+      }
+    }
   };
 
   const handleSearchSubmit = (e) => {
@@ -111,491 +68,463 @@ export default function HomeView({
     }
   };
 
+  const toggleVegOnly = () => {
+    setIsVegOnly(!isVegOnly);
+    onTriggerNotification(isVegOnly ? "Showing all dishes" : "Showing VEG-only dishes 🌱");
+    if (setSpeechText) {
+      setSpeechText(isVegOnly ? "Back to full cravings list! 🍕" : "Fresh, green, and healthy! 🌱");
+    }
+  };
+
+  // Filter dishes based on Veg, Price, and Sub-Tab
+  const filteredDishes = dishes.filter(dish => {
+    // Veg filter
+    if (isVegOnly) {
+      const isVeg = dish.id === 'healthy-salad' || dish.id === 'lava-cake';
+      if (!isVeg) return false;
+    }
+    // Price filter
+    if (priceFilter) {
+      if (dish.price > priceFilter) return false;
+    }
+    // Time filter (Food in 15 mins)
+    if (activeSubTab === 'FOOD IN 15 MINS') {
+      const maxTime = parseInt(dish.time.split('-')[1]);
+      if (maxTime > 25) return false;
+    } else if (activeSubTab === 'REORDER') {
+      // Show distinct past ordered items
+      return ['pizza', 'comfort-ramen', 'lava-cake'].includes(dish.id);
+    }
+    return true;
+  });
+
   return (
-    <div className="viewport-content-panel home-mockup-layout">
+    <div className="swiggy-home-container">
       
-      {/* 1. Mockup Hero Card Banner */}
-      <div className="home-hero-banner-card">
-        {/* Decorative background glow behind mascot */}
-        <div className="hero-mascot-bg-glow"></div>
-
-        <div className="hero-banner-left-side">
-          <div className="hero-greeting-badge">
-            <span style={{ marginRight: '6px' }}>👋</span>
-            {getGreeting()}
-          </div>
-
-          <h1 className="hero-main-title">
-            Hi <span className="highlight-text">Shivani!</span><br />
-            What are you<br />
-            <span className="highlight-text">craving</span> today? <span className="heart-sketch">🧡</span>
-          </h1>
-
-          <p className="hero-main-subtitle">
-            Tell us your mood, we'll find the perfect meal for you. ✨
-          </p>
-
-          <form className="hero-search-speech-bubble" onSubmit={handleSearchSubmit}>
-            <div className="speech-bubble-pointer"></div>
-            <span className="search-sparkle-icon">✨</span>
-            <input 
-              type="text" 
-              placeholder="I'm craving something..." 
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="hero-search-input-box"
-            />
-            <button type="submit" className="hero-search-arrow-btn">
-              <i className="fa-solid fa-arrow-right"></i>
-            </button>
-          </form>
-
-          <div className="hero-search-ai-tip">
-            <svg className="tip-arrow-sketch" viewBox="0 0 50 30" width="35" height="20">
-              <path d="M 5,20 C 15,5 35,5 45,15 M 45,15 L 35,10 M 45,15 L 40,25" fill="none" stroke="var(--primary-coral)" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            <span>Try our AI magic ✨</span>
-          </div>
-        </div>
-
-        <div className="hero-banner-right-side" onClick={handleMascotClick}>
-          {/* Floating 3D Foods around mascot */}
-          <div className="floating-food-item f-chili" style={{ animationDelay: '0.2s' }}>🌶️</div>
-          <div className="floating-food-item f-choco" style={{ animationDelay: '0.6s' }}>🍫</div>
-          <div className="floating-food-item f-burger" style={{ animationDelay: '1.2s' }}>🍔</div>
-          <div className="floating-food-item f-boba" style={{ animationDelay: '0.8s' }}>🧋</div>
-          <div className="floating-food-item f-donut" style={{ animationDelay: '1.5s' }}>🍩</div>
-          <div className="floating-food-item f-bowl" style={{ animationDelay: '0.4s' }}>🍲</div>
-
-          {/* Speech bubble above mascot */}
-          <div className="mascot-interactive-speech-bubble">
-            {mascotBubbleText}
-          </div>
-
-          {/* Mascot Image from cache */}
-          <div className={`hero-3d-mascot-wrapper ${mascotAnimationState}`}>
-            <img src="/chef_hero.png" className="hero-mascot-image-render" alt="Cravling Mascot" />
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Bottom Actions Row (Moods + Main CTA) */}
-      <div className="home-bottom-actions-row">
+      {/* Solid Reddish-Pink Wrapped Branding & Action Section */}
+      <div className="swiggy-purple-section">
         
-        {/* Left column: 6 Mood cards */}
-        <div className="mood-cards-mockup-grid">
+        {/* 1. Location & User Profile Row */}
+        <div className="swiggy-black-location-picker">
+          <div className="black-loc-left" onClick={() => onTriggerNotification("📍 Location options coming soon!")}>
+            <div className="loc-title-row">
+              <i className="fa-solid fa-location-dot location-pin-white"></i>
+              <span className="loc-bold-title">Home</span>
+              <i className="fa-solid fa-chevron-down location-arrow-white"></i>
+            </div>
+            <span className="black-location-text">{location}</span>
+          </div>
+          
+          <div className="black-loc-right-tools">
+            <div className="wallet-circle-btn" onClick={() => onTriggerNotification("💳 Wallet balance: ₹340.00")}>
+              <i className="fa-solid fa-wallet"></i>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Category Tabs (Horizontal Scroll) */}
+        <div className="swiggy-categories-carousel">
           {[
-            { id: 'Cheesy', emoji: '🧀', label: 'Cheesy' },
-            { id: 'Spicy', emoji: '🌶️', label: 'Spicy' },
-            { id: 'Sweet', emoji: '🍫', label: 'Sweet' },
-            { id: 'Comfort', emoji: '🍜', label: 'Comfort' },
-            { id: 'Healthy', emoji: '🥗', label: 'Healthy' },
-            { id: 'More', emoji: '⬜', label: 'More', isMore: true }
-          ].map(mood => (
+            { id: 'Food', label: 'Food', emoji: '🍔' },
+            { id: 'Wizard', label: 'Wizard', emoji: '🪄', badge: 'AI' },
+            { id: 'Dineout', label: 'Dineout', emoji: '🍽️' },
+            { id: 'Wardrobe', label: 'Wardrobe', emoji: '👑', badge: 'Gear' },
+            { id: 'Crav DNA', label: 'Crav DNA', emoji: '🧬', badge: `LVL ${level}` }
+          ].map(cat => (
             <div 
-              key={mood.id}
-              className={`mood-card-badge-item ${activeMood === mood.id ? 'active' : ''}`}
-              onClick={() => {
-                if (mood.isMore) {
-                  onNavigate('wizard');
-                } else {
-                  handleMoodChipSelect(mood.id);
-                }
-              }}
+              key={cat.id} 
+              className={`swiggy-category-card ${activeCategory === cat.id ? 'active' : ''}`}
+              onClick={() => handleCategoryClick(cat.id)}
             >
-              <div className="mood-badge-emoji-box">
-                {mood.isMore ? (
-                  <i className="fa-solid fa-ellipsis" style={{ fontSize: '20px', color: '#888' }}></i>
-                ) : (
-                  mood.emoji
-                )}
+              <div className="swiggy-category-icon-wrapper">
+                <span className="swiggy-category-emoji">{cat.emoji}</span>
+                {cat.badge && <span className="swiggy-category-badge-pill">{cat.badge}</span>}
               </div>
-              <span className="mood-badge-label">{mood.label}</span>
+              <span className="swiggy-category-label">{cat.label}</span>
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Right column: Large Feed My Craving primary gradient button */}
-        <div className="feed-craving-large-gradient-cta" onClick={() => onNavigate('wizard')}>
-          <div className="gradient-cta-inner">
-            <div className="cta-left-icon">
-              <svg className="serving-dome-svg-icon" viewBox="0 0 32 32" width="28" height="28">
-                <path d="M 6,24 L 26,24 A 1,1 0 0,1 27,25 L 27,26 A 1,1 0 0,1 26,27 L 6,27 A 1,1 0 0,1 5,26 L 5,25 A 1,1 0 0,1 6,24 Z" fill="#FFFFFF" />
-                <path d="M 16,7 A 2,2 0 0,1 18,9 A 2,2 0 0,1 16,11 A 2,2 0 0,1 14,9 A 2,2 0 0,1 16,7 Z" fill="#FFFFFF" />
-                <path d="M 8,22 C 8,15.37 11.58,12 16,12 C 20.42,12 24,15.37 24,22 Z" fill="none" stroke="#FFFFFF" strokeWidth="2.5" />
+      <div className="swiggy-organic-container">
+
+        {/* 3. Search Bar Row with VEG toggle */}
+        <div className="swiggy-search-row">
+          <form className="swiggy-search-capsule" onSubmit={handleSearchSubmit}>
+            <i className="fa-solid fa-magnifying-glass swiggy-search-icon"></i>
+            <input 
+              type="text" 
+              placeholder="Search for 'Cake'" 
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="swiggy-search-input"
+            />
+            <div className="swiggy-search-right-tools">
+              <i className="fa-solid fa-microphone swiggy-mic-icon"></i>
+              <div className="swiggy-search-divider"></div>
+            </div>
+          </form>
+
+          {/* VEG Toggle Switch */}
+          <div className="swiggy-veg-toggle-box" onClick={toggleVegOnly}>
+            <span className="swiggy-veg-toggle-label">VEG</span>
+            <div className={`swiggy-veg-switch ${isVegOnly ? 'active' : ''}`}>
+              <div className="swiggy-veg-switch-handle">
+                <div className="swiggy-veg-dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 4. Promotional Banner - BIG BRAND HEIST */}
+        <div className="swiggy-brand-heist-banner">
+          <div className="heist-banner-left">
+            <div className="heist-cash-floating">💵 💸 🪙</div>
+            <h2 className="heist-banner-main-title">BIG BRAND HEIST</h2>
+            <div className="heist-order-now-btn">ORDER NOW</div>
+            <p className="heist-banner-sub">BIG BRANDS, BIGGEST LOOT!</p>
+          </div>
+          <div className="heist-banner-right">
+            {/* High-Fidelity Burger & Biryani Robber Mascots SVG Canvas */}
+            <svg width="150" height="130" viewBox="0 0 150 100" fill="none" className="heist-mascots-svg">
+              {/* Burger Robber (Left) */}
+              <g transform="translate(15, 10)">
+                <rect x="5" y="25" width="40" height="30" rx="10" fill="#f59e0b" />
+                <path d="M 5,40 H 45" stroke="#ef4444" strokeWidth="4" />
+                <path d="M 5,45 H 45" stroke="#10b981" strokeWidth="4" />
+                <rect x="5" y="20" width="40" height="14" fill="#1E1E1E" rx="3" />
+                <circle cx="18" cy="27" r="2.5" fill="white" />
+                <circle cx="32" cy="27" r="2.5" fill="white" />
+                <circle cx="0" cy="50" r="10" fill="#10B981" />
+                <text x="-4" y="54" fill="white" fontSize="11" fontWeight="900">$</text>
+              </g>
+              {/* Biryani Robber (Right) */}
+              <g transform="translate(85, 15)">
+                <path d="M 5,20 H 45 L 38,50 H 12 Z" fill="#D1A153" />
+                <path d="M 12,20 Q 25,5 38,20" fill="#FBBF24" />
+                <rect x="8" y="18" width="34" height="14" fill="#1E1E1E" rx="3" />
+                <circle cx="18" cy="25" r="2.5" fill="white" />
+                <circle cx="32" cy="25" r="2.5" fill="white" />
+                <circle cx="50" cy="45" r="10" fill="#10B981" />
+                <text x="46" y="49" fill="white" fontSize="11" fontWeight="900">$</text>
+              </g>
+              {/* Floating Green Notes */}
+              <rect x="45" y="15" width="12" height="6" fill="#A7F3D0" rx="1" transform="rotate(15 45 15)" />
+              <rect x="47" y="17" width="8" height="2" fill="#10B981" transform="rotate(15 45 15)" />
+              <rect x="75" y="65" width="12" height="6" fill="#A7F3D0" rx="1" transform="rotate(-25 75 65)" />
+              <rect x="77" y="67" width="8" height="2" fill="#10B981" transform="rotate(-25 75 65)" />
+            </svg>
+          </div>
+        </div>
+
+        {/* 5. Promotional Deal Cards (Horizontal Scroll) */}
+        <div className="swiggy-deal-cards-carousel">
+          {/* Card 1: PRICE DROP */}
+          <div 
+            className={`swiggy-deal-card ${priceFilter === 200 ? 'active' : ''}`}
+            onClick={() => handleDealClick("Dishes Starting At ₹29", 200)}
+          >
+            <span className="deal-header">Dishes Starting At ₹29</span>
+            <div className="deal-graphic-container">
+              <svg width="95" height="50" viewBox="0 0 100 50" fill="none">
+                <rect x="2" y="2" width="96" height="38" rx="8" fill="#1E004A" />
+                <text x="50" y="27" fill="#B5FF38" fontSize="14" fontWeight="900" textAnchor="middle" fontFamily="Poppins">PRICE</text>
+                <text x="50" y="38" fill="#FFFFFF" fontSize="12" fontWeight="900" textAnchor="middle" fontFamily="Poppins">DROP</text>
+                <path d="M 12,30 Q 15,22 25,30 M 80,30 Q 85,22 92,30" stroke="#B5FF38" strokeWidth="2.5" strokeLinecap="round" />
               </svg>
             </div>
-            <div className="cta-text-side">
-              <span className="cta-primary-title">Feed My Craving</span>
-              <span className="cta-secondary-desc">Let AI find your perfect meal</span>
-            </div>
-            <div className="cta-sparkle-effects">✨</div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* 3. Today's Craving Signature Spotlight */}
-      <div className="section-headline-bar">
-        <h3>Today's Craving</h3>
-      </div>
-      <div 
-        className="todays-craving-large-card"
-        onClick={() => onOpenDishDetails(dishes.find(d => d.id === 'pizza'))}
-      >
-        <div className="card-left-info">
-          <span className="todays-craving-tag">🔥 Signature Dish</span>
-          <h2 className="todays-craving-title">Triple Cheese Pizza</h2>
-          <span className="todays-craving-stats">
-            <span style={{ color: '#FF6B57', marginRight: '4px' }}>🔥</span> 
-            <strong>96% of Cravings</strong> loved this today
-          </span>
-        </div>
-        
-        {/* Overflowing Pizza Image */}
-        <div className="card-pizza-image-holder">
-          <img 
-            src="https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=800&auto=format&fit=crop" 
-            alt="Triple Cheese Pizza Cheese Pull" 
-          />
-        </div>
-
-        <button 
-          className="todays-craving-add-btn-new"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddDish(dishes.find(d => d.id === 'pizza'));
-          }}
-        >
-          Add +
-        </button>
-      </div>
-
-      {/* 6. Weather-Based Recommendation */}
-      <div className="section-headline-bar" style={{ marginTop: '25px' }}>
-        <h3>Climate Companion Match</h3>
-      </div>
-      <div className="weather-reco-box">
-        {weather === 'rainy' ? (
-          <div className="weather-reco-card-inner rainy">
-            <div className="weather-bg-cloud cloud-1">☁️</div>
-            <div className="weather-bg-cloud cloud-2">☁️</div>
-            <div className="weather-card-left">
-              <div className="weather-header-row">
-                <div className="weather-icon-circle">☔</div>
-                <div>
-                  <span className="weather-title">RAINY MONSOON DAY</span>
-                  <p className="weather-desc">Try warm, comforting bowls or custom sweet cocoa to keep cozy!</p>
-                </div>
-              </div>
-              <div className="weather-pills-row">
-                <button className="weather-pill-btn" onClick={() => onAddDish(dishes.find(d => d.id === 'comfort-ramen'))}>
-                  🍜 Hot Ramen Vibes
-                </button>
-                <button className="weather-pill-btn" onClick={() => onAddDish(dishes.find(d => d.id === 'lava-cake'))}>
-                  🍩 Sweet Lava Cake
-                </button>
-              </div>
-            </div>
-            {/* Chef Blobby Overlap */}
-            <div className="weather-mascot-holder">
-              <img src="/chef_hero.png" alt="Chef Blobby" />
+            <div className="deal-dots-row">
+              <span className="deal-dot dot-yellow"></span>
+              <span className="deal-dot dot-orange"></span>
+              <span className="deal-dot dot-green"></span>
+              <span className="deal-dot dot-white"></span>
             </div>
           </div>
-        ) : (
-          <div className="weather-reco-card-inner sunny">
-            <div className="weather-bg-cloud cloud-1">☁️</div>
-            <div className="weather-bg-cloud cloud-2">☁️</div>
-            <div className="weather-card-left">
-              <div className="weather-header-row">
-                <div className="weather-icon-circle">☀️</div>
-                <div>
-                  <span className="weather-title">CLEAR SUNNY SKIES</span>
-                  <p className="weather-desc">Perfect weather for a cheesy, hot and ultra-satisfying treat!</p>
-                </div>
-              </div>
-              <div className="weather-pills-row">
-                <button className="weather-pill-btn" onClick={() => onAddDish(dishes.find(d => d.id === 'pizza'))}>
-                  🍕 Triple Cheese Vibes
-                </button>
-                <button className="weather-pill-btn" onClick={() => onAddDish(dishes.find(d => d.id === 'healthy-salad'))}>
-                  🥑 Cheese Avocado Salad
-                </button>
-              </div>
-            </div>
-            {/* Chef Blobby Overlap */}
-            <div className="weather-mascot-holder">
-              <img src="/chef_hero.png" alt="Chef Blobby" />
-            </div>
-          </div>
-        )}
-      </div>
 
-      {/* 7. Trending Cravings */}
-      <div className="section-headline-bar" style={{ marginTop: '25px' }}>
-        <h3>Trending Cravings</h3>
-      </div>
-      <div className="trending-cravings-list-new">
-        {[
-          { id: 'comfort-ramen', name: 'Korean Spicy Noodles', pct: '92%', count: '142 orders near you', emoji: '🍜', img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&auto=format&fit=crop' },
-          { id: 'pizza', name: 'Extra Cheesy Double Pizza', pct: '94%', count: '98 orders near you', emoji: '🍕', img: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&auto=format&fit=crop' },
-          { id: 'lava-cake', name: 'Molten Chocolate Dessert', pct: '95%', count: '76 orders near you', emoji: '🍩', img: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&auto=format&fit=crop' }
-        ].map((trend) => {
-          const dishObj = dishes.find(d => d.id === trend.id) || dishes[0];
-          const isFav = favorites.includes(trend.id);
-          return (
-            <div 
-              key={trend.id} 
-              className="trending-craving-card-new"
-              onClick={() => onOpenDishDetails(dishObj)}
-            >
-              {/* Image Frame */}
-              <div className="trend-image-frame">
-                <img src={trend.img} alt={trend.name} />
-                
-                {/* Heart Overlay */}
-                <button 
-                  className={`trend-heart-btn ${isFav ? 'active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleFavorite(trend.id);
-                  }}
-                >
-                  <i className="fa-solid fa-heart"></i>
-                </button>
-
-                {/* Food Icon Overlay */}
-                <div className="trend-food-icon-badge">
-                  {trend.emoji}
-                </div>
-
-                {/* Hot/New Tag Overlay */}
-                <span style={{
-                  position: 'absolute',
-                  top: '10px',
-                  left: '10px',
-                  background: 'rgba(255, 94, 126, 0.9)',
-                  backdropFilter: 'blur(4px)',
-                  color: '#FFFFFF',
-                  fontSize: '9px',
-                  fontWeight: '900',
-                  padding: '3px 8px',
-                  borderRadius: '20px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  🔥 {dishObj.badge || 'Trending'}
-                </span>
-              </div>
-
-              {/* Title & Info */}
-              <h4 className="trend-card-title">{trend.name}</h4>
-              
-              {/* Source Kitchen & Rating details */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '6px' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: '600' }}>
-                  🏢 {dishObj.kitchen}
-                </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#FFA62B', fontWeight: '800' }}>
-                  ⭐ {dishObj.rating}
-                </span>
-              </div>
-
-              {/* Stats Row */}
-              <div className="trend-card-stats-row">
-                <span style={{ color: '#FF5E7E' }}>❤️</span>
-                <span>{trend.pct} loved it</span>
-                <span className="dot-divider">•</span>
-                <span>⏱️ {dishObj.time}</span>
-              </div>
-
-              {/* Price & Add to Cart Footer */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: '14px',
-                borderTop: '1px dashed rgba(229, 213, 197, 0.4)',
-                paddingTop: '12px'
-              }}>
-                <span style={{ fontFamily: 'Fredoka, sans-serif', fontSize: '17px', fontWeight: '800', color: 'var(--primary-coral)' }}>
-                  ₹{dishObj.price}
-                </span>
-                <button 
-                  className="trend-add-btn" 
-                  style={{
-                    background: 'var(--grad-coral)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '20px',
-                    padding: '6px 14px',
-                    fontSize: '12px',
-                    fontWeight: '800',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 10px rgba(255, 94, 126, 0.15)',
-                    transition: 'transform 0.2s',
-                    fontFamily: 'Fredoka, sans-serif'
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddDish(dishObj);
-                  }}
-                >
-                  Add +
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 8. Handpicked Dishes Grid */}
-      <div className="section-headline-bar" style={{ marginTop: '30px' }}>
-        <h3>Handpicked Cravings Near You</h3>
-      </div>
-      <div className="home-dishes-grid" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-        gap: '20px',
-        marginTop: '15px',
-        marginBottom: '30px'
-      }}>
-        {dishes.map((dish) => (
+          {/* Card 2: GET 70% OFF */}
           <div 
-            key={dish.id} 
-            className="home-dish-card" 
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '24px',
-              border: '1.5px solid #FDF0E9',
-              padding: '12px',
-              boxShadow: '0 8px 24px rgba(35, 35, 35, 0.02)',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              position: 'relative'
-            }}
-            onClick={() => onOpenDishDetails && onOpenDishDetails(dish)}
+            className={`swiggy-deal-card ${priceFilter === 150 ? 'active' : ''}`}
+            onClick={() => handleDealClick("Deal Feast 70% Off", 150)}
           >
-            {/* Dish Badge */}
-            {dish.badge && (
-              <span style={{
-                position: 'absolute',
-                top: '20px',
-                left: '20px',
-                background: 'var(--grad-orange)',
-                color: '#FFFFFF',
-                fontSize: '10px',
-                fontWeight: '900',
-                padding: '4px 10px',
-                borderRadius: '30px',
-                zIndex: 5,
-                boxShadow: '0 4px 8px rgba(255, 166, 43, 0.2)'
-              }}>
-                {dish.badge}
-              </span>
-            )}
-
-            {/* Dish Image */}
-            <div style={{
-              width: '100%',
-              height: '140px',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              position: 'relative',
-              background: '#FFF5F6'
-            }}>
-              <img 
-                src={dish.img} 
-                alt={dish.name} 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  transition: 'transform 0.3s ease'
-                }}
-                className="home-dish-card-img"
-              />
-              {/* Rating Badge Overlay */}
-              <div style={{
-                position: 'absolute',
-                bottom: '8px',
-                right: '8px',
-                background: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(4px)',
-                borderRadius: '30px',
-                padding: '3px 8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                fontSize: '11px',
-                fontWeight: '800',
-                color: '#232323'
-              }}>
-                ⭐ {dish.rating}
-              </div>
-            </div>
-
-            {/* Dish Details */}
-            <div style={{ padding: '10px 4px 4px 4px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-              <h4 style={{
-                fontSize: '14.5px',
-                fontWeight: '800',
-                color: '#232323',
-                margin: '0 0 4px 0',
-                fontFamily: 'Fredoka, sans-serif'
-              }}>{dish.name}</h4>
-              
-              <span style={{
-                fontSize: '11.5px',
-                color: 'var(--text-muted)',
-                display: 'block',
-                marginBottom: '10px'
-              }}>{dish.kitchen}</span>
-
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: 'auto'
-              }}>
-                <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '800' }}>PRICE</span>
-                  <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--primary-coral)' }}>🪙 {dish.price}</span>
-                </div>
-                
-                <button 
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    background: 'var(--grad-coral)',
-                    border: 'none',
-                    color: '#FFFFFF',
-                    fontSize: '16px',
-                    fontWeight: '900',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 10px rgba(255, 94, 126, 0.3)',
-                    transition: 'transform 0.2s ease'
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddDish(dish);
-                  }}
-                  className="dish-add-to-cart-btn"
-                >
-                  +
-                </button>
-              </div>
+            <span className="deal-header">Deal Feast</span>
+            <div className="deal-graphic-container">
+              <svg width="95" height="60" viewBox="0 0 100 65" fill="none">
+                {/* Wavy Stamp Badge */}
+                <path d="M 50,5 L 62,8 L 72,5 L 75,17 L 87,20 L 82,32 L 88,44 L 77,47 L 72,59 L 60,56 L 50,60 L 40,56 L 30,59 L 25,47 L 14,44 L 20,32 L 15,20 L 27,17 L 30,5 L 40,8 Z" fill="#E23E2A" stroke="white" strokeWidth="1.5" />
+                <text x="50" y="26" fill="white" fontSize="9" fontWeight="800" textAnchor="middle" fontFamily="Poppins">GET</text>
+                <text x="50" y="44" fill="white" fontSize="16" fontWeight="950" textAnchor="middle" fontFamily="Poppins">70%</text>
+                <text x="50" y="54" fill="white" fontSize="8" fontWeight="800" textAnchor="middle" fontFamily="Poppins">OFF</text>
+              </svg>
             </div>
           </div>
-        ))}
+
+          {/* Card 3: FLAT 100 OFF */}
+          <div 
+            className={`swiggy-deal-card ${priceFilter === 250 ? 'active' : ''}`}
+            onClick={() => handleDealClick("Flat ₹100 OFF deals", 250)}
+          >
+            <span className="deal-header">Top Brands, Top Deals</span>
+            <div className="deal-graphic-container">
+              <svg width="95" height="60" viewBox="0 0 100 60" fill="none">
+                {/* Circular Seal Badge */}
+                <circle cx="50" cy="30" r="26" fill="#0D421F" stroke="#B5FF38" strokeWidth="1.5" />
+                <text x="50" y="20" fill="#B5FF38" fontSize="8" fontWeight="800" textAnchor="middle" fontFamily="Poppins">FLAT</text>
+                <text x="50" y="38" fill="white" fontSize="15" fontWeight="950" textAnchor="middle" fontFamily="Poppins">₹100</text>
+                <text x="50" y="48" fill="#B5FF38" fontSize="8" fontWeight="800" textAnchor="middle" fontFamily="Poppins">OFF</text>
+              </svg>
+            </div>
+          </div>
+
+          {/* Card 4: FLAT 200 OFF */}
+          <div 
+            className="swiggy-deal-card"
+            onClick={() => handleDealClick("Flat ₹200 OFF deals", 300)}
+          >
+            <span className="deal-header">Flat ₹200 OFF</span>
+            <div className="deal-graphic-container">
+              <svg width="95" height="60" viewBox="0 0 100 60" fill="none">
+                {/* Gold Coin inside bowl */}
+                <path d="M 15,35 Q 50,55 85,35 Z" fill="#3D008F" />
+                <circle cx="50" cy="26" r="18" fill="#FCD34D" stroke="#F59E0B" strokeWidth="2" />
+                <text x="50" y="33" fill="#D97706" fontSize="20" fontWeight="900" textAnchor="middle" fontFamily="Poppins">₹</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+      </div> {/* End of Organic Content Container */}
+
+      {/* White Background Layout below purple container */}
+      <div className="swiggy-white-section">
+        
+        {/* 6. Subtabs Toggle Selector */}
+        <div className="swiggy-subtabs-row">
+          <button 
+            className={`swiggy-subtab-btn ${activeSubTab === 'REORDER' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveSubTab('REORDER');
+              onTriggerNotification("Showing reorder highlights");
+            }}
+          >
+            REORDER
+          </button>
+          <button 
+            className={`swiggy-subtab-btn ${activeSubTab === 'FOOD IN 15 MINS' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveSubTab('FOOD IN 15 MINS');
+              onTriggerNotification("Showing fast delivery dishes (<= 25 mins)");
+            }}
+          >
+            FOOD IN 15 MINS
+          </button>
+        </div>
+
+        {/* 7. Restaurant & Dishes Scroll List */}
+        <div className="swiggy-restaurants-scroll">
+          {filteredDishes.length === 0 ? (
+            <div className="swiggy-empty-dishes">
+              <span className="empty-emoji">🥣</span>
+              <p>No dishes match the active filters!</p>
+              <button className="empty-clear-btn" onClick={() => {
+                setIsVegOnly(false);
+                setPriceFilter(null);
+                setActiveSubTab('REORDER');
+              }}>Clear Filters</button>
+            </div>
+          ) : (
+            filteredDishes.map((dish) => {
+              const isFav = favorites.includes(dish.id);
+              
+              // Custom discount/overlay labels to match screenshot style
+              const overlays = {
+                'pizza': 'ITEMS AT ₹99 + 10% EXTRA OFF',
+                'biryani': '50% OFF + 10% EXTRA OFF',
+                'comfort-ramen': 'ITEMS AT ₹29',
+                'healthy-salad': 'GET 70% OFF',
+                'lava-cake': 'FLAT ₹100 OFF',
+                'sushi': 'ITEMS AT ₹199'
+              };
+              const overlayText = overlays[dish.id] || 'SPECIAL OFFER';
+
+              return (
+                <div 
+                  key={dish.id} 
+                  className="swiggy-restaurant-card"
+                  onClick={() => onOpenDishDetails && onOpenDishDetails(dish)}
+                >
+                  {/* Dish / Restaurant Image Frame */}
+                  <div className="swiggy-card-img-frame">
+                    <img src={dish.img} alt={dish.name} className="swiggy-card-img" />
+                    
+                    {/* Top Left Swiggy One Badge */}
+                    <div className="swiggy-card-one-badge">one</div>
+
+                    {/* Top Right Heart Fav Overlay */}
+                    <button 
+                      className={`swiggy-card-heart-btn ${isFav ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFavorite(dish.id);
+                      }}
+                    >
+                      <i className={`fa-solid fa-heart ${isFav ? 'filled' : ''}`}></i>
+                    </button>
+
+                    {/* Bottom Discount Overlay Banner */}
+                    <div className="swiggy-card-discount-banner">
+                      {overlayText}
+                    </div>
+                  </div>
+
+                  {/* Details block */}
+                  <div className="swiggy-card-details">
+                    <div className="swiggy-card-header-row">
+                      <h4 className="swiggy-card-restaurant-name">{dish.kitchen}</h4>
+                      {/* Price Badge in title area for ordering */}
+                      <span className="swiggy-card-price">₹{dish.price}</span>
+                    </div>
+
+                    <div className="swiggy-card-rating-row">
+                      <div className="swiggy-card-star-badge">
+                        <i className="fa-solid fa-star"></i>
+                        <span>{dish.rating}</span>
+                      </div>
+                      <span className="swiggy-card-time">• {dish.time}</span>
+                    </div>
+
+                    <div className="swiggy-card-cuisine">
+                      {dish.name}
+                    </div>
+
+                    <div className="swiggy-card-footer">
+                      <span className="cuisine-tags-row">
+                        {dish.tags.filter(t => t !== 'all').map(tag => (
+                          <span key={tag} className="cuisine-tag-pill">{tag}</span>
+                        ))}
+                      </span>
+                      {/* Direct Add CTA */}
+                      <button 
+                        className="swiggy-card-add-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddDish(dish);
+                        }}
+                      >
+                        ADD +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Divider line */}
+        <div className="swiggy-section-divider"></div>
+
+        {/* 8. Delivering Header Row */}
+        <div className="swiggy-delivering-header-box">
+          <h3 className="swiggy-delivering-title">128 restaurants delivering to you</h3>
+          
+          <div className="swiggy-filter-pills-row">
+            <button className="swiggy-filter-pill active">
+              Filter <i className="fa-solid fa-sliders"></i>
+            </button>
+            <button className="swiggy-filter-pill">
+              Sort By <i className="fa-solid fa-chevron-down"></i>
+            </button>
+            <button className="swiggy-filter-pill">Fast Delivery</button>
+            <button className="swiggy-filter-pill">Ratings 4.0+</button>
+          </div>
+        </div>
+
+        {/* 9. Vertical Restaurants List (Single-single cards for Phone UI) */}
+        <div className="swiggy-vertical-restaurants-list">
+          {dishes.map((dish) => {
+            const isFav = favorites.includes(dish.id);
+            const overlays = {
+              'pizza': 'ITEMS AT ₹99 + 10% EXTRA OFF',
+              'biryani': '50% OFF + 10% EXTRA OFF',
+              'comfort-ramen': 'ITEMS AT ₹29',
+              'healthy-salad': 'GET 70% OFF',
+              'lava-cake': 'FLAT ₹100 OFF',
+              'sushi': 'ITEMS AT ₹199'
+            };
+            const overlayText = overlays[dish.id] || 'SPECIAL OFFER';
+
+            return (
+              <div 
+                key={`vert-${dish.id}`}
+                className="swiggy-vert-restaurant-card"
+                onClick={() => onOpenDishDetails && onOpenDishDetails(dish)}
+              >
+                {/* Left Side: Food Image Frame */}
+                <div className="vert-card-left">
+                  <img src={dish.img} alt={dish.name} className="vert-card-img" />
+                  
+                  {/* Swiggy One Badge overlay */}
+                  <span className="vert-card-one-badge">one</span>
+                  
+                  {/* Discount overlay banner */}
+                  <span className="vert-card-discount-banner">{overlayText}</span>
+                </div>
+
+                {/* Right Side: Details & Actions */}
+                <div className="vert-card-right">
+                  <div className="vert-card-header-row">
+                    <h4 className="vert-card-kitchen-name">{dish.kitchen}</h4>
+                    <button 
+                      className={`vert-card-heart-btn ${isFav ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFavorite(dish.id);
+                      }}
+                    >
+                      <i className={`fa-solid fa-heart ${isFav ? 'filled' : ''}`}></i>
+                    </button>
+                  </div>
+
+                  <div className="vert-card-rating-row">
+                    <div className="vert-card-star-badge">
+                      <i className="fa-solid fa-star"></i>
+                      <span>{dish.rating}</span>
+                    </div>
+                    <span className="vert-card-meta-text">• {dish.time}</span>
+                    <span className="vert-card-meta-text">• 1.5 km</span>
+                  </div>
+
+                  <div className="vert-card-dish-name">
+                    {dish.name}
+                  </div>
+
+                  <p className="vert-card-cuisines-desc">
+                    North Indian, Biryani, Mughlai, Desserts
+                  </p>
+
+                  <div className="vert-card-footer">
+                    <span className="vert-card-price">₹{dish.price}</span>
+                    
+                    {/* Add Button */}
+                    <button 
+                      className="swiggy-card-add-btn vert-add-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddDish(dish);
+                      }}
+                    >
+                      ADD +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
       </div>
 
     </div>
   );
 }
+
