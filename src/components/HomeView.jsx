@@ -21,14 +21,45 @@ export default function HomeView({
   missions,
   setMissions,
   onAwardXP,
-  pastOrders
+  pastOrders,
+  priceFilter,
+  setPriceFilter,
+  onChangeLocation
 }) {
   const [searchInput, setSearchInput] = useState('');
   const [showPromo, setShowPromo] = useState(true);
   const [activeCategory, setActiveCategory] = useState('Food'); // Food, Instamart, Dineout, Wine Stores, Scenes
   const [isVegOnly, setIsVegOnly] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState('REORDER'); // REORDER vs FOOD IN 15 MINS
-  const [priceFilter, setPriceFilter] = useState(null); // Price limit from deals
+  const [isFastDelivery, setIsFastDelivery] = useState(false);
+  const [isHighlyRated, setIsHighlyRated] = useState(false);
+  const [sortBy, setSortBy] = useState(null); // 'price-low' or 'rating-high'
+
+  const handleLocationClick = () => {
+    const suggestions = [
+      "Salt Lake, Sector V, Kolkata",
+      "Indiranagar, 12th Main, Bengaluru",
+      "Bandra West, Hill Road, Mumbai",
+      "Connaught Place, Block E, New Delhi"
+    ];
+    const val = prompt(
+      `Change delivery address:\n\nSuggestions:\n1. ${suggestions[0]}\n2. ${suggestions[1]}\n3. ${suggestions[2]}\n4. ${suggestions[3]}\n\nOr type your custom address below:`,
+      location
+    );
+    if (val) {
+      let selected = val.trim();
+      if (selected === "1") selected = suggestions[0];
+      else if (selected === "2") selected = suggestions[1];
+      else if (selected === "3") selected = suggestions[2];
+      else if (selected === "4") selected = suggestions[3];
+
+      const weathers = ["sunny", "rainy"];
+      const randomWeather = weathers[Math.floor(Math.random() * weathers.length)];
+      if (onChangeLocation) {
+        onChangeLocation(selected, randomWeather);
+      }
+    }
+  };
   
   // Custom speech/companion updates when categories or items are clicked
   const handleCategoryClick = (category) => {
@@ -37,10 +68,8 @@ export default function HomeView({
       onNavigate('wizard');
     } else if (category === 'Dineout') {
       onNavigate('kitchens');
-    } else if (category === 'Wardrobe') {
-      onNavigate('wardrobe');
     } else if (category === 'Crav DNA') {
-      onNavigate('profile');
+      onNavigate('cravdna');
     } else {
       if (setSpeechText) {
         setSpeechText("Nice! Let's find your favorite food cravings! 🍔");
@@ -77,11 +106,11 @@ export default function HomeView({
   };
 
   // Filter dishes based on Veg, Price, and Sub-Tab
-  const filteredDishes = dishes.filter(dish => {
+  let filteredDishes = dishes.filter(dish => {
     // Veg filter
     if (isVegOnly) {
-      const isVeg = dish.id === 'healthy-salad' || dish.id === 'lava-cake';
-      if (!isVeg) return false;
+      const vegIds = ['healthy-salad', 'lava-cake', 'paneer-tikka', 'acai-bowl', 'waffles', 'dal-makhani', 'cheesecake', 'garlic-bread'];
+      if (!vegIds.includes(dish.id)) return false;
     }
     // Price filter
     if (priceFilter) {
@@ -92,11 +121,27 @@ export default function HomeView({
       const maxTime = parseInt(dish.time.split('-')[1]);
       if (maxTime > 25) return false;
     } else if (activeSubTab === 'REORDER') {
-      // Show distinct past ordered items
-      return ['pizza', 'comfort-ramen', 'lava-cake'].includes(dish.id);
+      // Show distinct past ordered items (at least 12 items)
+      const reorderIds = ['pizza', 'comfort-ramen', 'lava-cake', 'biryani', 'butter-chicken', 'burger', 'paneer-tikka', 'garlic-bread', 'waffles', 'cheesecake', 'caesar-wrap', 'tacos'];
+      return reorderIds.includes(dish.id);
+    }
+    // Fast delivery button
+    if (isFastDelivery) {
+      const maxTime = parseInt(dish.time.split('-')[1]);
+      if (maxTime > 25) return false;
+    }
+    // Rating 4.0+ button
+    if (isHighlyRated) {
+      if (parseFloat(dish.rating) < 4.7) return false;
     }
     return true;
   });
+
+  if (sortBy === 'price-low') {
+    filteredDishes = [...filteredDishes].sort((a, b) => a.price - b.price);
+  } else if (sortBy === 'rating-high') {
+    filteredDishes = [...filteredDishes].sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+  }
 
   return (
     <div className="swiggy-home-container">
@@ -106,7 +151,7 @@ export default function HomeView({
         
         {/* 1. Location & User Profile Row */}
         <div className="swiggy-black-location-picker">
-          <div className="black-loc-left" onClick={() => onTriggerNotification("📍 Location options coming soon!")}>
+          <div className="black-loc-left" onClick={handleLocationClick}>
             <div className="loc-title-row">
               <i className="fa-solid fa-location-dot location-pin-white"></i>
               <span className="loc-bold-title">Home</span>
@@ -128,7 +173,6 @@ export default function HomeView({
             { id: 'Food', label: 'Food', emoji: '🍔' },
             { id: 'Wizard', label: 'Wizard', emoji: '🪄', badge: 'AI' },
             { id: 'Dineout', label: 'Dineout', emoji: '🍽️' },
-            { id: 'Wardrobe', label: 'Wardrobe', emoji: '👑', badge: 'Gear' },
             { id: 'Crav DNA', label: 'Crav DNA', emoji: '🧬', badge: `LVL ${level}` }
           ].map(cat => (
             <div 
@@ -177,44 +221,22 @@ export default function HomeView({
         </div>
 
         {/* 4. Promotional Banner - BIG BRAND HEIST */}
-        <div className="swiggy-brand-heist-banner">
-          <div className="heist-banner-left">
-            <div className="heist-cash-floating">💵 💸 🪙</div>
-            <h2 className="heist-banner-main-title">BIG BRAND HEIST</h2>
-            <div className="heist-order-now-btn">ORDER NOW</div>
-            <p className="heist-banner-sub">BIG BRANDS, BIGGEST LOOT!</p>
-          </div>
-          <div className="heist-banner-right">
-            {/* High-Fidelity Burger & Biryani Robber Mascots SVG Canvas */}
-            <svg width="150" height="130" viewBox="0 0 150 100" fill="none" className="heist-mascots-svg">
-              {/* Burger Robber (Left) */}
-              <g transform="translate(15, 10)">
-                <rect x="5" y="25" width="40" height="30" rx="10" fill="#f59e0b" />
-                <path d="M 5,40 H 45" stroke="#ef4444" strokeWidth="4" />
-                <path d="M 5,45 H 45" stroke="#10b981" strokeWidth="4" />
-                <rect x="5" y="20" width="40" height="14" fill="#1E1E1E" rx="3" />
-                <circle cx="18" cy="27" r="2.5" fill="white" />
-                <circle cx="32" cy="27" r="2.5" fill="white" />
-                <circle cx="0" cy="50" r="10" fill="#10B981" />
-                <text x="-4" y="54" fill="white" fontSize="11" fontWeight="900">$</text>
-              </g>
-              {/* Biryani Robber (Right) */}
-              <g transform="translate(85, 15)">
-                <path d="M 5,20 H 45 L 38,50 H 12 Z" fill="#D1A153" />
-                <path d="M 12,20 Q 25,5 38,20" fill="#FBBF24" />
-                <rect x="8" y="18" width="34" height="14" fill="#1E1E1E" rx="3" />
-                <circle cx="18" cy="25" r="2.5" fill="white" />
-                <circle cx="32" cy="25" r="2.5" fill="white" />
-                <circle cx="50" cy="45" r="10" fill="#10B981" />
-                <text x="46" y="49" fill="white" fontSize="11" fontWeight="900">$</text>
-              </g>
-              {/* Floating Green Notes */}
-              <rect x="45" y="15" width="12" height="6" fill="#A7F3D0" rx="1" transform="rotate(15 45 15)" />
-              <rect x="47" y="17" width="8" height="2" fill="#10B981" transform="rotate(15 45 15)" />
-              <rect x="75" y="65" width="12" height="6" fill="#A7F3D0" rx="1" transform="rotate(-25 75 65)" />
-              <rect x="77" y="67" width="8" height="2" fill="#10B981" transform="rotate(-25 75 65)" />
-            </svg>
-          </div>
+        <div 
+          className="swiggy-brand-heist-banner" 
+          onClick={() => onTriggerNotification("🎉 Big Brand Heist Coupon activated!")}
+          style={{ cursor: 'pointer', padding: 0, overflow: 'hidden', background: 'transparent', border: 'none', boxShadow: 'none' }}
+        >
+          <img 
+            src="/poster.png" 
+            alt="Big Brand Heist" 
+            style={{ 
+              width: '100%', 
+              height: 'auto', 
+              borderRadius: '24px', 
+              display: 'block',
+              boxShadow: '0 8px 24px rgba(230, 0, 92, 0.15)'
+            }} 
+          />
         </div>
 
         {/* 5. Promotional Deal Cards (Horizontal Scroll) */}
@@ -428,20 +450,60 @@ export default function HomeView({
           <h3 className="swiggy-delivering-title">128 restaurants delivering to you</h3>
           
           <div className="swiggy-filter-pills-row">
-            <button className="swiggy-filter-pill active">
-              Filter <i className="fa-solid fa-sliders"></i>
+            <button 
+              className={`swiggy-filter-pill ${isVegOnly || priceFilter || isFastDelivery || isHighlyRated || sortBy ? 'active' : ''}`}
+              onClick={() => {
+                setIsVegOnly(false);
+                setPriceFilter(null);
+                setIsFastDelivery(false);
+                setIsHighlyRated(false);
+                setSortBy(null);
+                onTriggerNotification("Filters reset!");
+              }}
+            >
+              Reset <i className="fa-solid fa-rotate-left" style={{ marginLeft: '4px' }}></i>
             </button>
-            <button className="swiggy-filter-pill">
-              Sort By <i className="fa-solid fa-chevron-down"></i>
+            <button 
+              className={`swiggy-filter-pill ${sortBy ? 'active' : ''}`}
+              onClick={() => {
+                if (!sortBy) {
+                  setSortBy('price-low');
+                  onTriggerNotification("Sorting by Price: Low to High 💰");
+                } else if (sortBy === 'price-low') {
+                  setSortBy('rating-high');
+                  onTriggerNotification("Sorting by Rating: High to Low ⭐");
+                } else {
+                  setSortBy(null);
+                  onTriggerNotification("Cleared sorting");
+                }
+              }}
+            >
+              Sort {sortBy === 'price-low' ? '₹' : sortBy === 'rating-high' ? '⭐' : <i className="fa-solid fa-chevron-down"></i>}
             </button>
-            <button className="swiggy-filter-pill">Fast Delivery</button>
-            <button className="swiggy-filter-pill">Ratings 4.0+</button>
+            <button 
+              className={`swiggy-filter-pill ${isFastDelivery ? 'active' : ''}`}
+              onClick={() => {
+                setIsFastDelivery(!isFastDelivery);
+                onTriggerNotification(isFastDelivery ? "Fast Delivery filter off" : "Filtering Fast Delivery (< 25 min) ⚡");
+              }}
+            >
+              Fast Delivery
+            </button>
+            <button 
+              className={`swiggy-filter-pill ${isHighlyRated ? 'active' : ''}`}
+              onClick={() => {
+                setIsHighlyRated(!isHighlyRated);
+                onTriggerNotification(isHighlyRated ? "Highly Rated filter off" : "Filtering Highly Rated (4.7+) ⭐");
+              }}
+            >
+              Ratings 4.7+
+            </button>
           </div>
         </div>
 
         {/* 9. Vertical Restaurants List (Single-single cards for Phone UI) */}
         <div className="swiggy-vertical-restaurants-list">
-          {dishes.map((dish) => {
+          {filteredDishes.map((dish) => {
             const isFav = favorites.includes(dish.id);
             const overlays = {
               'pizza': 'ITEMS AT ₹99 + 10% EXTRA OFF',

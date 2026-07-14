@@ -91,7 +91,9 @@ export default function WardrobeView({
   equippedAccessories, 
   setEquippedAccessories, 
   onTriggerNotification,
-  setSpeechText 
+  setSpeechText,
+  chefGender = 'male',
+  setChefGender
 }) {
   const [activeTab, setActiveTab] = useState('shop'); // shop | equipped
 
@@ -119,7 +121,17 @@ export default function WardrobeView({
         onTriggerNotification(`Removed ${item.name}`);
         setSpeechText('Classic Blobby look. Timeless! 😋');
       } else {
-        setEquippedAccessories([...equippedAccessories, item.id]);
+        // Toggle/Replace items if we don't want overlap or stack if we want multiple
+        // Let's allow stacking multiple accessories (e.g. Hat + Sunglasses + Aura)
+        // Check if we are equipping a hat when one is already equipped, replace it
+        const headItems = ['chef_hat', 'party_hat', 'pirate_hat', 'crown', 'alien', 'ninja'];
+        let updated = [...equippedAccessories];
+        if (headItems.includes(item.id)) {
+          // Remove any existing head item
+          updated = updated.filter(id => !headItems.includes(id));
+        }
+        updated.push(item.id);
+        setEquippedAccessories(updated);
         onTriggerNotification(`Equipped ${item.name}! 🌟`);
         setSpeechText(`The ${item.name} is absolutely fire on me! 🌟`);
       }
@@ -129,8 +141,104 @@ export default function WardrobeView({
   const equippedItems = SHOP_ITEMS.filter(i => equippedAccessories.includes(i.id));
   const progressPercent = Math.min(((level - evolution.minLevel) / ((evolution.maxLevel - evolution.minLevel) || 1)) * 100, 100);
 
+  // Helper ChefAvatar Visual Component
+  const renderChefAvatar = () => {
+    const headItems = ['chef_hat', 'party_hat', 'pirate_hat', 'crown', 'alien', 'ninja'];
+    const equippedHead = SHOP_ITEMS.find(i => equippedAccessories.includes(i.id) && headItems.includes(i.id));
+    const equippedEyes = SHOP_ITEMS.find(i => equippedAccessories.includes(i.id) && i.id === 'sunglasses');
+    const equippedAura = SHOP_ITEMS.find(i => equippedAccessories.includes(i.id) && i.id === 'rainbow');
+    const baseFace = chefGender === 'male' ? '👨' : '👩';
+
+    return (
+      <div style={{
+        position: 'relative',
+        width: '90px',
+        height: '90px',
+        borderRadius: '50%',
+        background: 'linear-gradient(135deg, #FFE2E2 0%, #F5CBA7 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+        margin: '0 auto',
+        zIndex: 2,
+        border: '3px solid white'
+      }}>
+        {/* 1. Aura background */}
+        {equippedAura && (
+          <span style={{
+            position: 'absolute',
+            fontSize: '85px',
+            opacity: 0.7,
+            zIndex: 1,
+            animation: 'spinAura 12s linear infinite',
+            pointerEvents: 'none'
+          }}>
+            {equippedAura.emoji}
+          </span>
+        )}
+
+        {/* 2. Character Face base */}
+        <span style={{
+          fontSize: '52px',
+          zIndex: 5,
+          userSelect: 'none',
+          marginTop: '6px'
+        }}>
+          {baseFace}
+        </span>
+
+        {/* 3. Tunic Body at bottom */}
+        <span style={{
+          position: 'absolute',
+          bottom: '2px',
+          fontSize: '32px',
+          zIndex: 4,
+          opacity: 0.95
+        }}>
+          🧑‍🍳
+        </span>
+
+        {/* 4. Head Hat positioned absolute top */}
+        {equippedHead && (
+          <span style={{
+            position: 'absolute',
+            top: '-24px',
+            fontSize: '46px',
+            zIndex: 10,
+            filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))',
+            pointerEvents: 'none'
+          }}>
+            {equippedHead.emoji}
+          </span>
+        )}
+
+        {/* 5. Sunglasses positioned absolute middle */}
+        {equippedEyes && (
+          <span style={{
+            position: 'absolute',
+            top: '28px',
+            fontSize: '28px',
+            zIndex: 8,
+            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))',
+            pointerEvents: 'none'
+          }}>
+            {equippedEyes.emoji}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="wardrobe-view-root">
+      
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes spinAura {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}} />
 
       {/* ── TOP HERO: Blobby Avatar Stage ── */}
       <div className="wardrobe-hero-panel">
@@ -138,7 +246,55 @@ export default function WardrobeView({
         <div className="wardrobe-hero-left">
           <div className="wardrobe-level-badge">LVL {level}</div>
           <h2 className="wardrobe-hero-title">Blobby's<br/>Wardrobe 👑</h2>
-          <p className="wardrobe-hero-sub">Dress up Chef Blobby with accessories earned from your food journey.</p>
+          <p className="wardrobe-hero-sub" style={{ margin: '4px 0 8px 0', fontSize: '11px', color: '#8E8E93' }}>
+            Choose character base and equip unlocked gear.
+          </p>
+
+          {/* Gender Selector Toggle */}
+          <div style={{ display: 'flex', gap: '8px', margin: '10px 0' }}>
+            <button 
+              onClick={() => {
+                setChefGender('male');
+                onTriggerNotification("Set character: Male Chef 🧑‍🍳");
+              }}
+              style={{
+                flex: 1,
+                border: 'none',
+                borderRadius: '12px',
+                padding: '8px 10px',
+                fontSize: '11.5px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                background: chefGender === 'male' ? '#E6005C' : '#F3F4F6',
+                color: chefGender === 'male' ? 'white' : '#3A3A3C',
+                transition: 'all 0.2s',
+                boxShadow: chefGender === 'male' ? '0 4px 10px rgba(230, 0, 92, 0.2)' : 'none'
+              }}
+            >
+              🧑‍🍳 Male Chef
+            </button>
+            <button 
+              onClick={() => {
+                setChefGender('female');
+                onTriggerNotification("Set character: Female Chef 👩‍🍳");
+              }}
+              style={{
+                flex: 1,
+                border: 'none',
+                borderRadius: '12px',
+                padding: '8px 10px',
+                fontSize: '11.5px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                background: chefGender === 'female' ? '#E6005C' : '#F3F4F6',
+                color: chefGender === 'female' ? 'white' : '#3A3A3C',
+                transition: 'all 0.2s',
+                boxShadow: chefGender === 'female' ? '0 4px 10px rgba(230, 0, 92, 0.2)' : 'none'
+              }}
+            >
+              👩‍🍳 Female Chef
+            </button>
+          </div>
           
           {/* Coin balance */}
           <div className="wardrobe-coin-row">
@@ -149,24 +305,13 @@ export default function WardrobeView({
         </div>
 
         {/* Right: Blobby Avatar */}
-        <div className="wardrobe-avatar-stage">
+        <div className="wardrobe-avatar-stage" style={{ minWidth: '100px' }}>
           <div className="wardrobe-avatar-glow"></div>
-          <div className="wardrobe-avatar-blob">
-            {/* Stacked accessories on top */}
-            {equippedItems.length > 0 && (
-              <div className="wardrobe-avatar-accessories">
-                {equippedItems.map(item => (
-                  <span key={item.id} className="wardrobe-equipped-emoji">{item.emoji}</span>
-                ))}
-              </div>
-            )}
-            {/* Main blob character */}
-            <span className="wardrobe-blob-emoji">{evolution.emoji}</span>
-          </div>
-          <div className="wardrobe-stage-label" style={{ background: evolution.color, color: evolution.textColor }}>
+          {renderChefAvatar()}
+          <div className="wardrobe-stage-label" style={{ background: evolution.color, color: evolution.textColor, marginTop: '8px' }}>
             {evolution.stage}
           </div>
-          <p className="wardrobe-stage-desc">{evolution.desc}</p>
+          <p className="wardrobe-stage-desc" style={{ marginTop: '4px' }}>{evolution.desc}</p>
         </div>
       </div>
 

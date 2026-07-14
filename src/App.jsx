@@ -5,8 +5,8 @@ import HomeView from './components/HomeView';
 import WizardView from './components/WizardView';
 import KitchensView from './components/KitchensView';
 import OrdersView from './components/OrdersView';
-import WardrobeView from './components/WardrobeView';
 import ProfileView from './components/ProfileView';
+import CravDNAView from './components/CravDNAView';
 import DishDetailModal from './components/DishDetailModal';
 import CheckoutModal from './components/CheckoutModal';
 
@@ -39,6 +39,7 @@ export default function App() {
   const [wizardQuery, setWizardQuery] = useState('');
   const [location, setLocation] = useState('Salt Lake, Kolkata');
   const [weather, setWeather] = useState('sunny');
+  const [priceFilter, setPriceFilter] = useState(null);
 
   // Diet Preferences
   const [dietTags, setDietTags] = useState(['HighProtein']);
@@ -49,7 +50,19 @@ export default function App() {
   const [trackingStep, setTrackingStep] = useState(1);
   const [pastOrders, setPastOrders] = useState([
     { id: 'CR-4821', dish: 'Signature Sushi Roll', total: 349, date: 'Yesterday' },
-    { id: 'CR-1049', dish: 'Warm Chocolate Lava Cake', total: 129, date: '3 days ago' }
+    { id: 'CR-1049', dish: 'Warm Chocolate Lava Cake', total: 129, date: '3 days ago' },
+    { id: 'CR-9021', dish: 'Cheesy Chicken Pizza', total: 249, date: '5 days ago' },
+    { id: 'CR-3042', dish: 'Hyderabadi Chicken Biryani', total: 199, date: 'Last week' },
+    { id: 'CR-7740', dish: 'Double Smash Burger', total: 269, date: '2 weeks ago' }
+  ]);
+
+  // Dineout Table Bookings State
+  const [bookings, setBookings] = useState([
+    { id: 'CB-1042', kitchenName: 'Spice Route Kitchen', guests: 2, date: 'Today', time: '8:30 PM', status: 'Confirmed', img: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&auto=format&fit=crop' },
+    { id: 'CB-2039', kitchenName: "La Pino'z Cloud Kitchen", guests: 4, date: 'Tomorrow', time: '1:00 PM', status: 'Confirmed', img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop' },
+    { id: 'CB-4830', kitchenName: 'Noodle Bowl Co.', guests: 3, date: '18 Jul', time: '7:45 PM', status: 'Confirmed', img: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&auto=format&fit=crop' },
+    { id: 'CB-9302', kitchenName: 'Green & Lean Kitchen', guests: 2, date: '20 Jul', time: '12:30 PM', status: 'Confirmed', img: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=600&auto=format&fit=crop' },
+    { id: 'CB-7731', kitchenName: 'Burger Lab', guests: 5, date: '22 Jul', time: '9:00 PM', status: 'Confirmed', img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop' }
   ]);
 
   // Gamified Missions
@@ -66,6 +79,7 @@ export default function App() {
   const [selectedDishDetails, setSelectedDishDetails] = useState(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
+  const [unlockedCouponOpen, setUnlockedCouponOpen] = useState(false);
 
   // Confetti / Notification animation states
   const [notificationText, setNotificationText] = useState('');
@@ -285,12 +299,60 @@ export default function App() {
 
       {/* B. Confetti Overlay */}
       {confettiActive && (
-        <div className="confetti-canvas-overlay">
-          {/* Simple CSS simulated particle canvas overlay */}
-          <div style={{ position: 'absolute', top: '10%', left: '20%', fontSize: '24px', animation: 'loaderPulse 2.5s ease infinite' }}>✨</div>
-          <div style={{ position: 'absolute', top: '25%', left: '80%', fontSize: '28px', animation: 'loaderPulse 1.8s ease infinite' }}>🎉</div>
-          <div style={{ position: 'absolute', top: '70%', left: '15%', fontSize: '22px', animation: 'loaderPulse 2.2s ease infinite' }}>🍿</div>
-          <div style={{ position: 'absolute', top: '80%', left: '75%', fontSize: '26px', animation: 'loaderPulse 2.0s ease infinite' }}>🍪</div>
+        <div className="confetti-canvas-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          pointerEvents: 'none',
+          zIndex: 999999,
+          overflow: 'hidden'
+        }}>
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes fallConfetti {
+              0% {
+                transform: translateY(0) rotate(0deg) translateX(0);
+                opacity: 1;
+              }
+              50% {
+                transform: translateY(50vh) rotate(180deg) translateX(25px);
+              }
+              100% {
+                transform: translateY(105vh) rotate(360deg) translateX(-25px);
+                opacity: 0;
+              }
+            }
+          `}} />
+          {Array.from({ length: 60 }).map((_, idx) => {
+            const colors = ['#FF5E7E', '#FFA62B', '#FFD54F', '#5FD38D', '#3B82F6', '#8B5CF6', '#EC4899'];
+            const symbols = ['🎉', '✨', '🍬', '🎂', '🥳', '🎈', '⚡'];
+            const left = Math.random() * 100;
+            const delay = Math.random() * 2.5;
+            const duration = 2 + Math.random() * 2.5;
+            const size = 12 + Math.floor(Math.random() * 22);
+            const color = colors[idx % colors.length];
+            const isSymbol = idx % 5 === 0;
+            const symbol = symbols[idx % symbols.length];
+            
+            return (
+              <div 
+                key={idx} 
+                style={{
+                  position: 'absolute',
+                  top: '-40px',
+                  left: `${left}%`,
+                  fontSize: `${size}px`,
+                  color: isSymbol ? undefined : color,
+                  pointerEvents: 'none',
+                  animation: `fallConfetti ${duration}s linear ${delay}s infinite`,
+                  zIndex: 999999
+                }}
+              >
+                {isSymbol ? symbol : '■'}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -303,27 +365,17 @@ export default function App() {
       )}
 
       {/* D. Main Header Row */}
-      {currentTab !== 'home' && currentTab !== 'wizard' && currentTab !== 'kitchens' && (
-        <Header 
-          coins={coins} 
-          cartCount={totalCartCount} 
-          location={location} 
-          weather={weather}
-          onLocationChange={handleLocationChange} 
-          currentTab={currentTab}
-          onNavigate={handleNavigate}
-          onCartToggle={() => setMobileCartOpen(true)}
-        />
-      )}
+      <Header 
+        coins={coins} 
+        cartCount={totalCartCount} 
+        location={location} 
+        weather={weather}
+        onLocationChange={handleLocationChange} 
+        currentTab={currentTab}
+        onNavigate={handleNavigate}
+        onCartToggle={() => setMobileCartOpen(true)}
+      />
 
-      {/* E. Mobile Mascot Widget header drawer */}
-      {currentTab === 'wardrobe' && (
-        <div className="mobile-companion-evolution-widget-holder">
-          <div style={{ padding: '10px 0' }}>
-            <span style={{ fontSize: '13px', fontWeight: '800' }}>Blobby Evolution Preview</span>
-          </div>
-        </div>
-      )}
 
       {/* F. Main Grid Frame */}
       <div className={`main-portal-wrapper ${currentTab === 'home' ? 'is-home-view' : ''} ${currentTab === 'kitchens' ? 'is-kitchens-view' : ''}`}>
@@ -351,6 +403,9 @@ export default function App() {
               setMissions={setMissions}
               onAwardXP={handleAwardXP}
               pastOrders={pastOrders}
+              priceFilter={priceFilter}
+              setPriceFilter={setPriceFilter}
+              onChangeLocation={handleLocationChange}
             />
           )}
 
@@ -366,6 +421,7 @@ export default function App() {
               onTriggerNotification={triggerNotification}
               setSpeechText={setSpeechText}
               level={level}
+              onChangeLocation={handleLocationChange}
             />
           )}
 
@@ -377,6 +433,14 @@ export default function App() {
               onOpenDishDetails={setSelectedDishDetails}
               onNavigate={handleNavigate}
               onTriggerNotification={triggerNotification}
+              bookings={bookings}
+              onAddBooking={(newBooking) => {
+                setBookings([newBooking, ...bookings]);
+                handleAwardXP(150);
+                triggerNotification(`Table Reservation Confirmed at ${newBooking.kitchenName}! 🍽️`);
+                triggerConfetti();
+              }}
+              onChangeLocation={handleLocationChange}
             />
           )}
 
@@ -390,40 +454,44 @@ export default function App() {
               setTrackingStep={setTrackingStep}
               onTriggerNotification={triggerNotification}
               setSpeechText={setSpeechText}
+              bookings={bookings}
+              onCancelBooking={(id) => {
+                setBookings(bookings.filter(b => b.id !== id));
+                triggerNotification("Reservation cancelled successfully");
+              }}
             />
           )}
 
-          {currentTab === 'wardrobe' && (
-            <WardrobeView 
+          {currentTab === 'cravdna' && (
+            <CravDNAView 
+              dietTags={dietTags}
+              setDietTags={setDietTags}
+              onTriggerNotification={triggerNotification}
+              cravingDNA={cravingDNA}
               level={level}
+              xp={xp}
+              xpMax={xpMax}
               coins={coins}
               setCoins={setCoins}
               purchasedAccessories={purchasedAccessories}
               setPurchasedAccessories={setPurchasedAccessories}
               equippedAccessories={equippedAccessories}
               setEquippedAccessories={setEquippedAccessories}
-              onTriggerNotification={triggerNotification}
               setSpeechText={setSpeechText}
+              location={location}
+              onNavigate={handleNavigate}
+              onChangeLocation={handleLocationChange}
             />
           )}
 
           {currentTab === 'profile' && (
             <ProfileView 
-              dietTags={dietTags}
-              setDietTags={setDietTags}
-              missions={missions}
-              setMissions={setMissions}
               onTriggerNotification={triggerNotification}
-              onAwardXP={handleAwardXP}
-              setSpeechText={setSpeechText}
-              cravingDNA={cravingDNA}
               level={level}
               xp={xp}
               xpMax={xpMax}
-              pastOrders={pastOrders}
-              onAddDish={handleAddDishDirectly}
               location={location}
-              onOpenDishDetails={setSelectedDishDetails}
+              onNavigate={handleNavigate}
             />
           )}
 
@@ -541,17 +609,28 @@ export default function App() {
           onClick={() => handleNavigate('profile')}
         >
           <div className="swiggy-nav-icon-container">
-            <span className="nav-badge-lvl">LVL {level}</span>
             <i className="fa-solid fa-user swiggy-nav-icon"></i>
           </div>
           <span>Profile</span>
         </div>
       </nav>
 
+      {/* Crav DNA half-pill floating shortcut on the right side */}
+      <div 
+        className={`crav-dna-side-pill ${currentTab === 'cravdna' ? 'active' : ''}`}
+        onClick={() => handleNavigate('cravdna')}
+        title="View Crav DNA"
+      >
+        <img src="/logoa.png" className="crav-dna-side-pill-img" alt="Crav DNA Mascot Logo" />
+      </div>
+
       {/* Floating GET 75 Coupon Tag on bottom right */}
       <div 
         className="swiggy-floating-coupon-btn" 
-        onClick={() => triggerNotification("🎟️ Promo Coupon Applied: GET ₹75 OFF on next checkout!")}
+        onClick={() => {
+          triggerConfetti();
+          setUnlockedCouponOpen(true);
+        }}
       >
         <span className="coupon-get">GET</span>
         <span className="coupon-value">₹75</span>
@@ -573,7 +652,106 @@ export default function App() {
         cart={cart}
         location={location}
         onCheckoutSuccess={handleCheckoutSuccess}
+        coins={coins}
+        setCoins={setCoins}
       />
+
+      {/* K. Coupon Unlock Birthday Modal */}
+      {unlockedCouponOpen && (
+        <>
+          <div className="drawer-backdrop" onClick={() => setUnlockedCouponOpen(false)} style={{ zIndex: 99999 }}></div>
+          <div 
+            style={{
+              position: 'fixed',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '90%',
+              maxWidth: '380px',
+              background: '#FFFFFF',
+              color: '#1C1C1E',
+              borderRadius: '28px',
+              padding: '24px',
+              boxSizing: 'border-box',
+              zIndex: 100000,
+              boxShadow: '0 12px 36px rgba(0,0,0,0.3)',
+              border: '1.5px solid #FF5E7E',
+              animation: 'scalePop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              textAlign: 'center'
+            }}
+          >
+            <style dangerouslySetInnerHTML={{__html: `
+              @keyframes giftBounce {
+                0%, 100% { transform: scale(1) translateY(0); }
+                50% { transform: scale(1.1) translateY(-10px); }
+              }
+              @keyframes scalePop {
+                from { transform: translate(-55%, -55%) scale(0.9); opacity: 0; }
+                to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+              }
+            `}} />
+
+            <div style={{ fontSize: '60px', animation: 'giftBounce 2s infinite ease-in-out', marginBottom: '15px' }}>
+              🎁
+            </div>
+
+            <h3 style={{ fontFamily: 'Fredoka, sans-serif', fontSize: '22px', color: '#FF5E7E', margin: '0 0 10px 0' }}>
+              Congratulations! 🎉
+            </h3>
+            
+            <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-charcoal)', margin: '0 0 16px 0' }}>
+              You have unlocked a ₹75 Birthday Discount Coupon!
+            </p>
+
+            {/* Glowing ticket display */}
+            <div 
+              style={{
+                background: '#FFF5ED',
+                border: '2px dashed #FF5E7E',
+                borderRadius: '16px',
+                padding: '14px 20px',
+                marginBottom: '20px',
+                cursor: 'pointer'
+              }}
+              onClick={() => {
+                navigator.clipboard.writeText('BDAY75');
+                triggerNotification("📋 Copied code: BDAY75!");
+              }}
+              title="Click to copy coupon code"
+            >
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>PROMO CODE</span>
+              <span style={{ fontSize: '24px', fontWeight: '900', color: '#FF5E7E', letterSpacing: '2px' }}>BDAY75</span>
+              <span style={{ fontSize: '11px', color: '#10B981', display: 'block', marginTop: '4px', fontWeight: '700' }}>✓ Click to copy code</span>
+            </div>
+
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.4', margin: '0 0 20px 0' }}>
+              Redeem this flat ₹75 OFF discount coupon during secure checkout. No minimum order limit!
+            </p>
+
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText('BDAY75');
+                triggerNotification("📋 Copied code: BDAY75!");
+                setUnlockedCouponOpen(false);
+              }}
+              style={{
+                width: '100%',
+                background: 'var(--grad-coral)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '20px',
+                padding: '12px',
+                fontWeight: '800',
+                fontSize: '14px',
+                cursor: 'pointer',
+                boxShadow: '0 6px 18px rgba(255, 94, 126, 0.3)'
+              }}
+            >
+              Got it, Chef! 🧑‍🍳
+            </button>
+          </div>
+        </>
+      )}
     </>
   );
 }

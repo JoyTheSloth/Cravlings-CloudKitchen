@@ -5829,6 +5829,10 @@ body {
     box-sizing: border-box !important;
   }
   
+  .desktop-header.hide-on-mobile {
+    display: none !important;
+  }
+  
   /* Centralize and enlarge logo */
   .desktop-header .header-logo-section {
     position: absolute !important;
@@ -6238,7 +6242,8 @@ body {
 
 /* 2. Uninterrupted Content Container (Vibrant brand-red organic container) */
 .swiggy-organic-container {
-  background: var(--organic-bg) !important;
+  background: url('/redbg.png') no-repeat center !important;
+  background-size: cover !important;
   padding: 16px 16px 28px 16px !important;
   border-bottom-left-radius: 40px !important;
   border-bottom-right-radius: 40px !important;
@@ -6249,6 +6254,8 @@ body {
   box-shadow: 0 10px 25px rgba(230, 0, 92, 0.15) !important;
   box-sizing: border-box !important;
   z-index: 1 !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
 }
 
 /* Search Row in Organic Container matching design */
@@ -6624,6 +6631,61 @@ body {
   transform: scale(1.1) !important;
   background: white !important;
 }
+
+/* ==========================================================================
+   DINEOUT UI RESPONSIVE STYLES
+   ========================================================================== */
+.dineout-restaurant-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 20px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.dineout-menu-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+  .dineout-restaurant-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .dineout-menu-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .dineout-collections-section div::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
+.dineout-card {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.25s ease !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.dineout-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 30px rgba(230, 0, 92, 0.1) !important;
+}
+
+.booking-drawer {
+  max-height: 85vh !important;
+  overflow-y: auto !important;
+}
+
 
 /* ==========================================================================
    WARDROBE VIEW — PREMIUM GEN-Z REDESIGN
@@ -7703,3 +7765,427 @@ body {
 .wiz-loader-tag:nth-child(2) { animation-delay: 0.3s; }
 .wiz-loader-tag:nth-child(3) { animation-delay: 0.6s; }
 .wiz-loader-tag:nth-child(4) { animation-delay: 0.9s; }
+
+/* ==========================================================================
+   FLOATING CAPSULE BOTTOM NAVIGATION BAR STYLING
+   ========================================================================== */
+.app-sticky-bottom-nav.swiggy-bottom-nav {
+  position: fixed !important;
+  bottom: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 90% !important;
+  max-width: 420px !important;
+  height: 64px !important;
+  background: #FFFFFF !important;
+  border-radius: 50px !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+  display: flex !important;
+  grid-template-columns: none !important; /* Override standard grid layout */
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0 8px !important;
+  z-index: 9999 !important;
+  box-sizing: border-box !important;
+}
+
+.bottom-nav-item-btn.swiggy-nav-item {
+  flex: 1 !important;
+  height: 48px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 28px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  color: #6F6F6F !important;
+  background: transparent !important;
+  gap: 2px !important;
+  cursor: pointer !important;
+  padding: 0 10px !important;
+}
+
+.bottom-nav-item-btn.swiggy-nav-item .swiggy-nav-icon-container {
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 2px !important;
+}
+
+.bottom-nav-item-btn.swiggy-nav-item .swiggy-nav-icon {
+  font-size: 16px !important;
+  color: #6F6F6F !important;
+  transition: color 0.2s !important;
+}
+
+.bottom-nav-item-btn.swiggy-nav-item span {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #6F6F6F !important;
+  font-family: 'Poppins', sans-serif !important;
+  line-height: 1 !important;
+  transition: color 0.2s !important;
+}
+
+/* Active State Capsule Pill - Light Coral Red overlay */
+.bottom-nav-item-btn.swiggy-nav-item.active {
+  background: #FFEAEA !important;
+  color: #E6005C !important;
+}
+
+.bottom-nav-item-btn.swiggy-nav-item.active .swiggy-nav-icon {
+  color: #E6005C !important;
+}
+
+.bottom-nav-item-btn.swiggy-nav-item.active span {
+  color: #E6005C !important;
+  font-weight: 800 !important;
+}
+
+/* Custom logo button replacing Healthy Mode */
+.bottom-nav-item-logo-btn {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  border: 2px solid white !important;
+  box-shadow: 0 4px 12px rgba(230, 0, 92, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 4px !important;
+  cursor: pointer !important;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  background: #E6005C !important;
+}
+
+.bottom-nav-item-logo-btn:hover {
+  transform: scale(1.1) !important;
+}
+
+.bottom-nav-item-logo-btn.active {
+  box-shadow: 0 0 0 3px rgba(230, 0, 92, 0.3), 0 4px 12px rgba(230, 0, 92, 0.4) !important;
+}
+
+.bottom-nav-item-logo-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* ==========================================================================
+   CRAV DNA HALF-PILL SIDE SHORTCUT
+   ========================================================================== */
+.crav-dna-side-pill {
+  position: fixed !important;
+  top: 130px !important;
+  right: 0 !important;
+  height: 76px !important;
+  width: 70px !important;
+  background: #FFFFFF !important;
+  border-radius: 38px 0 0 38px !important;
+  border: 1.5px solid rgba(0, 0, 0, 0.05) !important;
+  border-right: none !important;
+  box-shadow: -5px 5px 20px rgba(0, 0, 0, 0.06) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding-left: 8px !important;
+  z-index: 9999 !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  box-sizing: border-box !important;
+}
+
+.crav-dna-side-pill:hover {
+  width: 82px !important;
+  padding-left: 14px !important;
+  background: #FFEAEA !important;
+}
+
+.crav-dna-side-pill.active {
+  background: #E6005C !important;
+  box-shadow: -5px 5px 20px rgba(230, 0, 92, 0.2) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
+  border-right: none !important;
+}
+
+.crav-dna-side-pill-img {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 2.5px solid #E6005C !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: transform 0.2s ease !important;
+}
+
+.crav-dna-side-pill.active .crav-dna-side-pill-img {
+  border: 2px solid white !important;
+}
+
+.crav-dna-side-pill:active .crav-dna-side-pill-img {
+  transform: scale(0.9) !important;
+}
+
+/* ==========================================================================
+   DESKTOP / WEBSITE OPTIMIZATIONS (Screen width > 768px)
+   ========================================================================== */
+@media (min-width: 769px) {
+  /* 1. Hide mobile bottom sticky navigation */
+  .swiggy-bottom-nav {
+    display: none !important;
+  }
+
+  /* 2. Show desktop top header on all tabs and adjust padding */
+  .desktop-header {
+    display: flex !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1.5px solid rgba(229, 213, 197, 0.4) !important;
+    padding: 16px 60px !important;
+    position: sticky !important;
+    top: 0;
+    z-index: 1000;
+  }
+  .desktop-header.hide-on-mobile {
+    display: flex !important; /* Keep visible on desktop regardless of hide class */
+  }
+
+  /* 3. Center and structure the main content container layout */
+  .swiggy-home-container {
+    padding-bottom: 40px !important;
+  }
+
+  /* Center purple top branding section content */
+  .swiggy-purple-section {
+    padding: 30px 40px 36px 40px !important;
+    border-bottom-left-radius: 50px !important;
+    border-bottom-right-radius: 50px !important;
+  }
+  .swiggy-purple-section > * {
+    max-width: 1100px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Center category selector tabs and make them larger */
+  .swiggy-categories-carousel {
+    justify-content: center !important;
+    gap: 24px !important;
+    overflow-x: visible !important;
+    padding-top: 10px !important;
+  }
+  .swiggy-category-card {
+    flex: 0 0 120px !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding: 18px 10px 10px 10px !important;
+  }
+  .swiggy-category-card.active {
+    padding: 22px 10px 12px 10px !important;
+  }
+  .swiggy-category-icon-wrapper {
+    width: 50px !important;
+    height: 50px !important;
+  }
+  .swiggy-category-emoji {
+    font-size: 32px !important;
+  }
+  .swiggy-category-label {
+    font-size: 11.5px !important;
+    margin-top: 8px !important;
+  }
+  .swiggy-category-badge-pill {
+    font-size: 9px !important;
+    padding: 2px 7px !important;
+    bottom: -6px !important;
+  }
+
+  /* Center organic page container content */
+  .swiggy-organic-container {
+    max-width: 1120px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 40px 20px !important;
+    gap: 36px !important;
+  }
+
+  /* Clean up delivering header margins */
+  .swiggy-delivering-header-box {
+    padding: 0 !important;
+    margin-bottom: 8px !important;
+    gap: 16px !important;
+  }
+  .swiggy-delivering-title {
+    font-size: 24px !important;
+  }
+
+  /* Search bar & veg toggle row tweaks */
+  .swiggy-search-row {
+    gap: 20px !important;
+  }
+  .swiggy-search-capsule {
+    height: 60px !important;
+    padding: 8px 20px !important;
+  }
+  .swiggy-search-input {
+    font-size: 15px !important;
+  }
+  .swiggy-veg-toggle-box {
+    padding: 6px 12px !important;
+    background: #f1f2f4 !important;
+    border-radius: 16px !important;
+    border: 1px solid #EAEAEA !important;
+  }
+  .swiggy-veg-toggle-label {
+    color: #10B981 !important;
+    font-size: 9px !important;
+  }
+
+  /* Heist banner enlargement */
+  .swiggy-brand-heist-banner {
+    padding: 36px 48px !important;
+    border-radius: 32px !important;
+  }
+  .heist-banner-main-title {
+    font-size: 34px !important;
+    margin-bottom: 12px !important;
+  }
+  .heist-order-now-btn {
+    font-size: 12px !important;
+    padding: 8px 20px !important;
+    border-radius: 24px !important;
+  }
+  .heist-banner-sub {
+    font-size: 11px !important;
+  }
+  .heist-banner-right {
+    font-size: 80px !important; /* Larger mascot illustration */
+  }
+
+  /* Display neon green deals as a 4-column grid */
+  .swiggy-deal-cards-carousel {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 20px !important;
+    overflow-x: visible !important;
+    padding: 0 !important;
+  }
+  .swiggy-deal-card {
+    flex: unset !important;
+    width: 100% !important;
+    min-height: 180px !important;
+    padding: 20px 16px !important;
+  }
+  .deal-header {
+    font-size: 13.5px !important;
+  }
+  .deal-stamp-badge {
+    font-size: 10.5px !important;
+    padding: 5px 10px !important;
+  }
+
+  /* Display subtabs centered and bounded */
+  .swiggy-subtabs-row {
+    max-width: 480px !important;
+    margin: 0 auto !important;
+    padding: 5px !important;
+    border-radius: 24px !important;
+  }
+  .swiggy-subtab-btn {
+    font-size: 13px !important;
+    padding: 12px !important;
+    border-radius: 20px !important;
+  }
+
+  /* Horizontal restaurant carousel -> 4-column responsive grid */
+  .swiggy-restaurants-scroll {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 24px !important;
+    padding: 10px 0 !important;
+    overflow-x: visible !important;
+  }
+  .swiggy-restaurant-card {
+    flex: unset !important;
+    width: 100% !important;
+    border-radius: 24px !important;
+  }
+  .swiggy-card-img-frame {
+    height: 190px !important;
+  }
+  .swiggy-card-restaurant-name {
+    font-size: 16px !important;
+  }
+  .swiggy-card-price {
+    font-size: 15px !important;
+  }
+
+  /* Vertical list of restaurants -> 3-column responsive grid */
+  .swiggy-vertical-restaurants-list {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 24px !important;
+    padding: 0 0 40px 0 !important; /* Remove side padding and bottom scroll buffer */
+  }
+  .swiggy-vert-restaurant-card {
+    border-radius: 24px !important;
+    padding: 14px !important;
+  }
+  .vert-card-left {
+    width: 110px !important;
+    height: 110px !important;
+    flex: 0 0 110px !important;
+  }
+  .vert-card-kitchen-name {
+    font-size: 16px !important;
+  }
+
+  /* Custom styling for profile DNA view tabs grids on desktop */
+  .profile-organic-container {
+    max-width: 1100px !important;
+    margin: 0 auto !important;
+    padding: 40px 20px !important;
+  }
+  
+  /* Wizard Dialog enlargement */
+  .wizard-portal-view {
+    max-width: 850px !important;
+    padding: 48px 60px !important;
+    border-radius: 40px !important;
+    margin: 40px auto !important;
+  }
+  .wizard-prompt-text {
+    font-size: 24px !important;
+    margin-bottom: 30px !important;
+  }
+  .wizard-options-list {
+    gap: 20px !important;
+  }
+  .wizard-option-card-square {
+    padding: 32px 20px !important;
+    border-radius: 28px !important;
+  }
+  .wiz-square-title {
+    font-size: 17px !important;
+  }
+  .wiz-square-desc {
+    font-size: 12px !important;
+  }
+  .wizard-btn-next, .wizard-btn-prev {
+    font-size: 15px !important;
+    padding: 14px 28px !important;
+  }
+
+  /* Disable Crav DNA side pill on desktop because they can navigate via the Header */
+  .crav-dna-side-pill {
+    display: none !important;
+  }
+}
+
+
+

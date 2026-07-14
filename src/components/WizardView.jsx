@@ -126,8 +126,7 @@ export default function WizardView({
   const handleCategoryClick = (category) => {
     if (category === 'Food') onNavigate('home');
     else if (category === 'Dineout') onNavigate('kitchens');
-    else if (category === 'Wardrobe') onNavigate('wardrobe');
-    else if (category === 'Crav DNA') onNavigate('profile');
+    else if (category === 'Crav DNA') onNavigate('cravdna');
   };
 
   return (
@@ -156,7 +155,6 @@ export default function WizardView({
             { id: 'Food', label: 'Food', emoji: '🍔' },
             { id: 'Wizard', label: 'Wizard', emoji: '🪄', badge: 'AI' },
             { id: 'Dineout', label: 'Dineout', emoji: '🍽️' },
-            { id: 'Wardrobe', label: 'Wardrobe', emoji: '👑', badge: 'Gear' },
             { id: 'Crav DNA', label: 'Crav DNA', emoji: '🧬', badge: `LVL ${level || 1}` }
           ].map(cat => (
             <div

@@ -15,7 +15,7 @@ export default function Header({ coins, cartCount, location, weather, onLocation
   }, []);
 
   return (
-    <header className="desktop-header">
+    <header className={`desktop-header ${['home', 'wizard', 'kitchens', 'profile', 'cravdna'].includes(currentTab) ? 'hide-on-mobile' : ''}`}>
       <div className="header-logo-section" onClick={() => onNavigate('home')}>
         <img src="/logo.png" className="header-logo-img" alt="Cravlings Logo" style={{ objectFit: 'contain', borderRadius: '8px' }} />
       </div>
@@ -97,7 +97,7 @@ export default function Header({ coins, cartCount, location, weather, onLocation
         </div>
 
         {/* Currency Coins */}
-        <div className="desktop-coin-counter" onClick={() => onNavigate('wardrobe')} title="Visit Mascot Wardrobe">
+        <div className="desktop-coin-counter" onClick={() => onNavigate('cravdna')} title="Customize Mascot in Crav DNA">
           <div className="coin-hexagon-badge">
             <i className="fa-solid fa-hexagon-nodes" style={{ display: 'none' }}></i>
             🪙
